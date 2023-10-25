@@ -1,1 +1,1 @@
-GLOBAL_PATH = '.\\'
+GLOBAL_PATH = '.'

@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+import os
 
 from METAPARAMETERS import *
 
@@ -78,7 +79,7 @@ def load_model(bin_num, session_num, cell_num, train_mode, model_name=None, task
 
     weight_dict = None
     if epoch != 0:
-        model_path = GLOBAL_PATH + f'model\\{model_name}_{train_mode}_{task_name}_{epoch}.m'
+        model_path = os.path.join(GLOBAL_PATH, 'model', model_name + '_' + task_name + '_' + str(epoch) + '.m')
         weight_dict = torch.load(model_path)
         model.load_state_dict(weight_dict)
 

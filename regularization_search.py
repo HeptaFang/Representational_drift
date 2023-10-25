@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import os
 
 from training import train_model
 from METAPARAMETERS import *
@@ -25,8 +26,10 @@ def main():
                                     'lambda_latent_l1': l1, 'lambda_latent_l2': l2, }
             train_loss, test_loss = train_model(task_name, train_mode, from_epoch=0, to_epoch=max_epoch,
                                                 regularization_paras=regularization_paras)
-            np.save(GLOBAL_PATH + f'analysis\\train_loss_{task_name}_{train_mode}_{0}_{max_epoch}.npy', train_loss)
-            np.save(GLOBAL_PATH + f'analysis\\test_loss_{task_name}_{train_mode}_{0}_{max_epoch}.npy', test_loss)
+            np.save(os.path.join(GLOBAL_PATH, 'analysis',
+                                 f'train_loss_{task_name}_{train_mode}_{0}_{max_epoch}.npy'), train_loss)
+            np.save(os.path.join(GLOBAL_PATH, 'analysis',
+                                 f'test_loss_{task_name}_{train_mode}_{0}_{max_epoch}.npy'), test_loss)
 
 
 if __name__ == '__main__':

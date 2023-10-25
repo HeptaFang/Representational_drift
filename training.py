@@ -1,5 +1,5 @@
 from functools import partial
-import matplotlib.pyplot as plt
+import os
 import torch
 import numpy as np
 import json
@@ -57,13 +57,13 @@ def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularizati
     use_selected_cell = True
     # load dataset
     if use_selected_cell:
-        position = np.load(GLOBAL_PATH+'dataset\\' + task_name + '_position_shuffled_selected.npy')
-        timestamp = np.load(GLOBAL_PATH+'dataset\\' + task_name + '_timestamp_shuffled_selected.npy')
-        activity = np.load(GLOBAL_PATH+'dataset\\' + task_name + '_activity_shuffled_selected.npy')
+        position = np.load(os.path.join(GLOBAL_PATH, 'dataset', task_name + '_position_shuffled_selected.npy'))
+        timestamp = np.load(os.path.join(GLOBAL_PATH, 'dataset', task_name + '_timestamp_shuffled_selected.npy'))
+        activity = np.load(os.path.join(GLOBAL_PATH, 'dataset', task_name + '_activity_shuffled_selected.npy'))
     else:
-        position = np.load(GLOBAL_PATH+'dataset\\' + task_name + '_position_shuffled.npy')
-        timestamp = np.load(GLOBAL_PATH+'dataset\\' + task_name + '_timestamp_shuffled.npy')
-        activity = np.load(GLOBAL_PATH+'dataset\\' + task_name + '_activity_shuffled.npy')
+        position = np.load(os.path.join(GLOBAL_PATH, 'dataset', task_name + '_position_shuffled.npy'))
+        timestamp = np.load(os.path.join(GLOBAL_PATH, 'dataset', task_name + '_timestamp_shuffled.npy'))
+        activity = np.load(os.path.join(GLOBAL_PATH, 'dataset', task_name + '_activity_shuffled.npy'))
 
     bin_num = position.shape[1]
     session_num = timestamp.shape[1]
@@ -113,7 +113,9 @@ def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularizati
         train_loss[i] = train_loop(dataloader, model, loss_fn, regularization_fn, optimizer, device, full_batch)
         test_loss[i] = test(model, tensor_position_test, tensor_timestamp_test, tensor_activity_test, loss_fn, device)
         if (i + 1) % 10 == 0:
-            torch.save(model.state_dict(), GLOBAL_PATH+f'model\\{model_name}_{train_mode}_{task_name}_{i + 1 + from_epoch}.m')
+            torch.save(model.state_dict(),
+                       os.path.join(GLOBAL_PATH, 'model',
+                                    f'{model_name}_{train_mode}_{task_name}_{i + 1 + from_epoch}.m'))
         print(
             f"Epoch {i + 1 + from_epoch}/{to_epoch}\ntrain_loss: {np.sum(train_loss[i]):>5f} = {train_loss[i][0]:>5f} + {train_loss[i][1]:>5f} + {train_loss[i][2]:>5f} + {train_loss[i][3]:>5f}\ntest_loss: {test_loss[i]:>7f}")
 
@@ -182,26 +184,14 @@ def main():
                                     'lambda_latent': 0.0}
             train_loss, test_loss = train_model(task_name, train_mode, from_epoch=0, to_epoch=reg_epoch,
                                                 regularization_paras=regularization_paras)
-            np.save(GLOBAL_PATH+f'analysis\\train_loss_{task_name}_{train_mode}_{0}_{reg_epoch}.npy', train_loss)
-            np.save(GLOBAL_PATH+f'analysis\\test_loss_{task_name}_{train_mode}_{0}_{reg_epoch}.npy', test_loss)
-
-            print(f'Training {task_name} with {train_mode} Phase Extend')
-            train_loss, test_loss = train_model(task_name, train_mode, from_epoch=reg_epoch, to_epoch=max_epoch,
-                                                regularization_paras=regularization_paras)
-            np.save(GLOBAL_PATH+f'analysis\\train_loss_{task_name}_{train_mode}_{reg_epoch}_{max_epoch}.npy', train_loss)
-            np.save(GLOBAL_PATH+f'analysis\\test_loss_{task_name}_{train_mode}_{reg_epoch}_{max_epoch}.npy', test_loss)
+            np.save(os.path.join(GLOBAL_PATH, 'analysis',
+                                 f'train_loss_{task_name}_{train_mode}_{0}_{reg_epoch}.npy'), train_loss)
+            np.save(os.path.join(GLOBAL_PATH, 'analysis',
+                                 f'test_loss_{task_name}_{train_mode}_{0}_{reg_epoch}.npy'), test_loss)
 
             regularization_paras = {'lambda_position': 1e-3, 'lambda_timestamp': 1e-3,
                                     'lambda_position_smooth': 2e-3, 'lambda_timestamp_smooth': 0.0,
                                     'lambda_latent': 3e-5}
-            # regularization_paras = {'lambda_position': 2e-4, 'lambda_timestamp': 2e-4,
-            #                         'lambda_position_smooth': 2e-3, 'lambda_timestamp_smooth': 0.0,
-            #                         'lambda_latent': 1e-5}
-            print(f'Training {task_name} with {train_mode} Phase Regularize')
-            train_loss, test_loss = train_model(task_name, train_mode, from_epoch=reg_epoch, to_epoch=max_epoch,
-                                                regularization_paras=regularization_paras)
-            np.save(GLOBAL_PATH+f'analysis\\train_loss_{task_name}_{train_mode}_{reg_epoch}_{max_epoch}_regularize.npy', train_loss)
-            np.save(GLOBAL_PATH+f'analysis\\test_loss_{task_name}_{train_mode}_{reg_epoch}_{max_epoch}_regularize.npy', test_loss)
 
 
 if __name__ == '__main__':

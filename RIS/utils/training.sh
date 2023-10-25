@@ -1,2 +1,2 @@
-conda activate Torch
+source activate Torch
 python main.py
