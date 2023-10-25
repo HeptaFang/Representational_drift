@@ -61,7 +61,7 @@ class BindingModel(nn.Module):
 
 
 def load_model(bin_num, session_num, cell_num, train_mode, model_name=None, task_name=None, epoch=0,
-               return_weight=False):
+               return_weight=False, reg_marker=''):
     if train_mode == 'Additive':
         model = BindingModel(bin_num, session_num, cell_num, binding_mode='add')
     elif train_mode == 'Multiplicative':
@@ -79,7 +79,8 @@ def load_model(bin_num, session_num, cell_num, train_mode, model_name=None, task
 
     weight_dict = None
     if epoch != 0:
-        model_path = os.path.join(GLOBAL_PATH, 'model', model_name + '_' + task_name + '_' + str(epoch) + '.m')
+        model_path = os.path.join(GLOBAL_PATH, 'model',
+                                  model_name + '_' + task_name + '_' + reg_marker + '_' + str(epoch) + '.m')
         weight_dict = torch.load(model_path)
         model.load_state_dict(weight_dict)
 

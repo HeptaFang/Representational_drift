@@ -53,7 +53,8 @@ def nan_MSEloss(y_pred, y):
     return torch.mean(loss) / compensate
 
 
-def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularization_paras=None, full_batch=False):
+def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularization_paras=None, full_batch=False,
+                log_level=0, save_interval=100, reg_marker=''):
     use_selected_cell = True
     # load dataset
     if use_selected_cell:
@@ -112,12 +113,12 @@ def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularizati
     for i in range(training_epoch):
         train_loss[i] = train_loop(dataloader, model, loss_fn, regularization_fn, optimizer, device, full_batch)
         test_loss[i] = test(model, tensor_position_test, tensor_timestamp_test, tensor_activity_test, loss_fn, device)
-        if (i + 1) % 10 == 0:
+        if (i + 1) % save_interval == 0:
             torch.save(model.state_dict(),
                        os.path.join(GLOBAL_PATH, 'model',
-                                    f'{model_name}_{train_mode}_{task_name}_{i + 1 + from_epoch}.m'))
-        print(
-            f"Epoch {i + 1 + from_epoch}/{to_epoch}\ntrain_loss: {np.sum(train_loss[i]):>5f} = {train_loss[i][0]:>5f} + {train_loss[i][1]:>5f} + {train_loss[i][2]:>5f} + {train_loss[i][3]:>5f}\ntest_loss: {test_loss[i]:>7f}")
+                                    f'{model_name}_{train_mode}_{task_name}_{reg_marker}_{i + 1 + from_epoch}.m'))
+            # print(
+            #     f"Epoch {i + 1 + from_epoch}/{to_epoch}\ntrain_loss: {np.sum(train_loss[i]):>5f} = {train_loss[i][0]:>5f} + {train_loss[i][1]:>5f} + {train_loss[i][2]:>5f} + {train_loss[i][3]:>5f}\ntest_loss: {test_loss[i]:>7f}")
 
     # plt.plot(train_loss)
     # plt.show()
