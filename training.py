@@ -11,11 +11,15 @@ EPOCH_NUM = 1000
 
 def binding_regularization(model, lambda_position=1e-4, lambda_timestamp=0.0,
                            lambda_position_smooth=1e-4, lambda_timestamp_smooth=0.0,
-                           lambda_latent=1e-6):
+                           lambda_latent_l1=1e-6, lambda_latent_l2=0.0):
     # return 0, 0, 0
-    # L2 regularization for position & timestamp
+    # L2 regularization
     position_l2_regularization = lambda_position * torch.linalg.vector_norm(model.position_encoding.weight, 2)
     timestamp_l2_regularization = lambda_timestamp * torch.linalg.vector_norm(model.timestamp_encoding.weight, 2)
+    if model.use_latent:
+        latent_l2_regularization = lambda_latent_l2 * torch.linalg.vector_norm(model.latent_projection.weight, 2)
+    else:
+        latent_l2_regularization = 0
 
     # smooth regularization for position & timestamp encoding
     position_diff_weight = torch.diff(model.position_encoding.weight, dim=1)
@@ -26,11 +30,11 @@ def binding_regularization(model, lambda_position=1e-4, lambda_timestamp=0.0,
 
     # L1 regularization for latent space transformation
     if model.use_latent:
-        latent_l1_regularization = lambda_latent * torch.linalg.vector_norm(model.latent_projection.weight, 1)
+        latent_l1_regularization = lambda_latent_l1 * torch.linalg.vector_norm(model.latent_projection.weight, 1)
     else:
         latent_l1_regularization = 0
 
-    l2 = position_l2_regularization + timestamp_l2_regularization
+    l2 = position_l2_regularization + timestamp_l2_regularization + latent_l2_regularization
     smooth = position_smooth_regularization + timestamp_smooth_regularization
     l1 = latent_l1_regularization
 
@@ -114,17 +118,6 @@ def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularizati
         print(
             f"Epoch {i + 1 + from_epoch}/{to_epoch}\ntrain_loss: {np.sum(train_loss[i]):>5f} = {train_loss[i][0]:>5f} + {train_loss[i][1]:>5f} + {train_loss[i][2]:>5f} + {train_loss[i][3]:>5f}\ntest_loss: {test_loss[i]:>7f}")
 
-        # if i % 10 == 0:
-        #     idx = np.random.randint(0, 4095)
-        #     test_x = x[idx, :, :]
-        #     test_y = y[idx, :, :]
-        #     y_pred = model(torch.Tensor(test_x).to(device))
-        #     plt.clf()
-        #     plt.plot(test_x[:, 0])
-        #     plt.plot(test_y[:, 0])
-        #     plt.plot(y_pred[:, 0].cpu().detach().numpy())
-        #     plt.legend(['x', 'y', 'pred'])
-        #     plt.savefig(f'image\\{task_name}\\{i}.jpg')
 
     # plt.plot(train_loss)
     # plt.show()
@@ -173,47 +166,13 @@ def test(model, position, timestamp, activity, loss_fn, device):
     return loss_fn(activity_pred.detach(), activity.detach())
 
 
-# def main():
-#     train_loss = np.zeros((5, 3, EPOCH_NUM, 4))
-#     total_train_loss = np.zeros((5, 3, EPOCH_NUM))
-#     test_loss = np.zeros((5, 3, EPOCH_NUM))
-#     modes = ['MultiWithLatent', 'Additive', 'Multiplicative']
-#     # modes = ['MultiWithLatent', 'MultiWithLatentMedium', 'MultiWithLatentLarge']
-#     data_label = 'MultiEncoding'
-#     # data_label = 'MultiSizeLatent'
-#     for i in range(5):
-#         for j in range(3):
-#             train_mode = modes[j]
-#             name = f'mouse{i + 1}'
-#             train_loss[i, j], test_loss[i, j] = train_model(name, train_mode)
-#
-#         total_train_loss[i] = np.sum(train_loss[i], 2)
-#         plt.clf()
-#         colors = 'rgb'
-#         for j in range(3):
-#             plt.plot(total_train_loss[i, j], f'{colors[j]}-')
-#         for j in range(3):
-#             plt.plot(test_loss[i, j], f'{colors[j]}:')
-#         plt.title(f'mouse{i + 1}')
-#         plt.xlabel('training progress (epoch)')
-#         plt.ylabel('loss')
-#
-#         plt.legend(
-#             ['MultiWithLatent_train', 'Additive_train', 'Multiplicative_train',
-#              'MultiWithLatent_test', 'Additive_test', 'Multiplicative_test'])
-#         # plt.legend(['64_train', '128_train', '256_train', '64_test', '128_test', '256_test'])
-#
-#         plt.savefig(f'image\\trainingLoss_{data_label}_mouse{i + 1}')
-#
-#     np.save(f'analysis\\train_loss_{data_label}.npy', train_loss)
-#     np.save(f'analysis\\test_loss_{data_label}.npy', test_loss)
-
 def main():
     np.random.seed(113)
     torch.manual_seed(308)
-    tasks = ['mouse1', 'mouse2', 'mouse3', 'mouse4', 'mouse5']
-    # train_modes = ['Additive', 'Multiplicative', 'MultiWithLatent']
-    train_modes = ['AddWithLatent']
+    # tasks = ['mouse1', 'mouse2', 'mouse3', 'mouse4', 'mouse5']
+    tasks = ['mouse1']
+    train_modes = ['Additive', 'Multiplicative', 'MultiWithLatent']
+    # train_modes = ['AddWithLatent']
     reg_epoch = 500
     max_epoch = 5000
 

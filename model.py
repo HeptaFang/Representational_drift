@@ -8,7 +8,8 @@ class BindingModel(nn.Module):
     output: predicted neuron response
     """
 
-    def __init__(self, position_size, timestamp_size, output_size, latent_size=None, binding_mode='mul'):
+    def __init__(self, position_size, timestamp_size, output_size, latent_size=None, binding_mode='mul',
+                 initialization_exp=0.5):
         super(BindingModel, self).__init__()
         self.position_size = position_size
         self.timestamp_size = timestamp_size
@@ -25,6 +26,11 @@ class BindingModel(nn.Module):
         self.timestamp_encoding = nn.Linear(self.timestamp_size, self.latent_size, bias=False)
         self.latent_projection = nn.Linear(self.latent_size, self.output_size)
         self.activation = nn.functional.relu
+
+        # weight initialization
+        nn.init.normal_(self.position_encoding.weight, mean=0, std=1 / position_size ** initialization_exp)
+        nn.init.normal_(self.timestamp_encoding.weight, mean=0, std=1 / timestamp_size ** initialization_exp)
+        nn.init.zeros_(self.latent_projection.weight)
 
     def forward(self, position, timestamp):
         # encoding
