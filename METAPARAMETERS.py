@@ -1,1 +1,1 @@
-# todo: move hyperparameters here
+GLOBAL_PATH = '.\\'
