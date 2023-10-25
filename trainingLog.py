@@ -3,10 +3,13 @@ import matplotlib.pyplot as plt
 
 
 def main():
-    tasks = ['mouse1', 'mouse2', 'mouse3', 'mouse4', 'mouse5']
+    # tasks = ['mouse1', 'mouse2', 'mouse3', 'mouse4', 'mouse5']
+    tasks = ['mouse1']
     train_modes = ['Additive', 'Multiplicative', 'MultiWithLatent']
+    train_modes = ['AddWithLatent', 'MultiWithLatent']
 
-    colors = {'Additive': 'r', 'Multiplicative': 'b', 'MultiWithLatent': 'g'}
+    # colors = {'Additive': 'r', 'Multiplicative': 'b', 'MultiWithLatent': 'g'}
+    colors = {'AddWithLatent': 'r', 'MultiWithLatent': 'g'}
     reg_epoch = 500
     max_epoch = 5000
 
@@ -60,7 +63,7 @@ def main():
         ax_regularize.set_xlabel('Epoch')
         ax_regularize.set_ylabel('Loss')
         ax_regularize.set_title(f'{task_name} With Regularization')
-        fig_basic.savefig(f'image\\{task_name}_5k.png')
+        fig_basic.savefig(f'image\\{task_name}_5k_new.png')
         # fig_regularize.savefig(f'image\\{task_name}_regularize_2k.png')
 
 

@@ -212,7 +212,8 @@ def main():
     np.random.seed(113)
     torch.manual_seed(308)
     tasks = ['mouse1', 'mouse2', 'mouse3', 'mouse4', 'mouse5']
-    train_modes = ['Additive', 'Multiplicative', 'MultiWithLatent']
+    # train_modes = ['Additive', 'Multiplicative', 'MultiWithLatent']
+    train_modes = ['AddWithLatent']
     reg_epoch = 500
     max_epoch = 5000
 

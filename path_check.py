@@ -2,6 +2,10 @@ import os
 
 
 def main():
+    """
+    Create necessary folders.
+    Run this before any other script.
+    """
     folders = ['model', 'dataset', 'image', 'analysis']
     print(os.listdir())
     for folder in folders:

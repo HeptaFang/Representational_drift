@@ -1,2 +1,6 @@
 *.rar
-*/
+
+/analysis/
+/dataset/
+/image/
+/model/

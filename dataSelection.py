@@ -59,5 +59,6 @@ def main():
         #         confidence[max_start:max_start + block_length, max_mask[0]])
         #
 
+
 if __name__ == '__main__':
     main()

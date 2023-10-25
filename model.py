@@ -57,6 +57,8 @@ def load_model(bin_num, session_num, cell_num, train_mode, model_name=None, task
         model = BindingModel(bin_num, session_num, cell_num, binding_mode='add')
     elif train_mode == 'Multiplicative':
         model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul')
+    elif train_mode == 'AddWithLatent':
+        model = BindingModel(bin_num, session_num, cell_num, binding_mode='add', latent_size=32)
     elif train_mode == 'MultiWithLatent':
         model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul', latent_size=32)
     elif train_mode == 'MultiWithLatentMedium':
