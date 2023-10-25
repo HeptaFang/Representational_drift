@@ -124,7 +124,7 @@ def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularizati
     return train_loss, test_loss
 
 
-def train_loop(dataloader, model, loss_fn, regularization_fn, optimizer, device, full_batch=False):
+def train_loop(dataloader, model, loss_fn, regularization_fn, optimizer, device, full_batch=False, save_interval=100):
     size = len(dataloader.dataset)
     all_loss = []
     optimizer.zero_grad()

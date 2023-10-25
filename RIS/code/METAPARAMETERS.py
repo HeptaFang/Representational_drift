@@ -1,3 +1,1 @@
-import os
-
-GLOBAL_PATH = os.path.join('data', 'data_TT')
+GLOBAL_PATH = '/data/data_TT'
