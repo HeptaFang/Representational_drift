@@ -2,7 +2,7 @@
 
 source activate Torch
 
-max_parallel=8
+max_parallel=16
 current_jobs=0
 
 for a in {0..10}; do
