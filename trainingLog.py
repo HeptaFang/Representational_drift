@@ -1,70 +1,48 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+from METAPARAMETERS import *
 
 
 def main():
     # tasks = ['mouse1', 'mouse2', 'mouse3', 'mouse4', 'mouse5']
     tasks = ['mouse1']
-    train_modes = ['Additive', 'Multiplicative', 'MultiWithLatent']
+    # train_modes = ['Additive', 'Multiplicative', 'MultiWithLatent']
     train_modes = ['AddWithLatent', 'MultiWithLatent']
-
     # colors = {'Additive': 'r', 'Multiplicative': 'b', 'MultiWithLatent': 'g'}
     colors = {'AddWithLatent': 'r', 'MultiWithLatent': 'g'}
-    reg_epoch = 500
-    max_epoch = 5000
+    max_epoch = 3000
 
-    for task_name in tasks:
-        fig_basic = plt.figure(figsize=(12, 8), dpi=100)
-        ax_basic = fig_basic.add_subplot(121)
-        ax_regularize = fig_basic.add_subplot(122)
-        # fig_regularize = plt.figure(figsize=(6, 8), dpi=100)
-        # ax_regularize = fig_regularize.add_subplot(111)
-        x_basic = np.arange(0, reg_epoch, 1)
-        x_extent = np.arange(reg_epoch, max_epoch, 1)
-        max_loss = 0
-        min_loss = 100000
+    l1_levels = [0, 1e-8, 2e-8, 5e-8, 1e-7, 2e-7, 5e-7, 1e-6, 2e-6, 5e-6, 1e-5]
+    l2_levels = [0, 1e-6, 2e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2]
+    smooth_levels = [0, 1e-6, 2e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2]
 
-        for train_mode in train_modes:
-            basic_train_loss = np.load(f'analysis\\train_loss_{task_name}_{train_mode}_0_{reg_epoch}.npy')
-            basic_test_loss = np.load(f'analysis\\test_loss_{task_name}_{train_mode}_0_{reg_epoch}.npy')
-            extent_train_loss = np.load(f'analysis\\train_loss_{task_name}_{train_mode}_{reg_epoch}_{max_epoch}.npy')
-            extent_test_loss = np.load(f'analysis\\test_loss_{task_name}_{train_mode}_{reg_epoch}_{max_epoch}.npy')
-            regularize_train_loss = np.load(
-                f'analysis\\train_loss_{task_name}_{train_mode}_{reg_epoch}_{max_epoch}_regularize.npy')
-            regularize_test_loss = np.load(
-                f'analysis\\test_loss_{task_name}_{train_mode}_{reg_epoch}_{max_epoch}_regularize.npy')
+    path = os.path.join(GLOBAL_PATH, 'analysis', 'regularization_search')
+    fig_path = os.path.join(GLOBAL_PATH, 'image', 'regularization_search')
+    file_list = os.listdir(path)
 
-            ax_basic.plot(x_basic, basic_train_loss[:, 0], label=f'{train_mode} train', color=colors[train_mode],
-                          linestyle='solid', )
-            ax_basic.plot(x_basic, basic_test_loss, label=f'{train_mode} test', color=colors[train_mode],
-                          linestyle='dashed')
-            ax_basic.plot(x_extent, extent_train_loss[:, 0], color=colors[train_mode], linestyle='solid')
-            ax_basic.plot(x_extent, extent_test_loss, color=colors[train_mode], linestyle='dashed')
-            ax_regularize.plot(x_basic, basic_train_loss[:, 0], label=f'{train_mode} train', color=colors[train_mode],
-                               linestyle='solid')
-            ax_regularize.plot(x_basic, basic_test_loss, label=f'{train_mode} test', color=colors[train_mode],
-                               linestyle='dashed')
-            ax_regularize.plot(x_extent, regularize_train_loss[:, 0], color=colors[train_mode], linestyle='solid')
-            ax_regularize.plot(x_extent, regularize_test_loss, color=colors[train_mode], linestyle='dashed')
+    # overview of all tasks
+    for filename in file_list:
+        print(filename)
+        if 'train_loss' not in filename or 'AddWithLatent' not in filename:
+            continue
 
-            if np.max(basic_test_loss) > max_loss:
-                max_loss = np.max(basic_test_loss)
-            if np.min(regularize_train_loss) < min_loss:
-                min_loss = np.min(regularize_train_loss)
-
-        ax_basic.legend()
-        ax_basic.set_ylim(-0.1, 1.5)
-        ax_basic.set_xlabel('Epoch')
-        ax_basic.set_ylabel('Loss')
-        ax_basic.set_title(f'{task_name} No Regularization')
-        ax_regularize.legend()
-        ax_regularize.set_ylim(-0.1, 1.5)
-        ax_regularize.vlines(reg_epoch, 0, 1.4, color='k', linestyle='dashed')
-        ax_regularize.set_xlabel('Epoch')
-        ax_regularize.set_ylabel('Loss')
-        ax_regularize.set_title(f'{task_name} With Regularization')
-        fig_basic.savefig(f'image\\{task_name}_5k_new.png')
-        # fig_regularize.savefig(f'image\\{task_name}_regularize_2k.png')
+        test_filename = filename.replace('train_loss', 'test_loss')
+        train_multi_filename = filename.replace('AddWithLatent', 'MultiWithLatent')
+        test_multi_filename = test_filename.replace('AddWithLatent', 'MultiWithLatent')
+        train_data_add = np.load(os.path.join(path, filename))[:, 0]
+        test_data_add = np.load(os.path.join(path, test_filename))
+        train_data_multi = np.load(os.path.join(path, train_multi_filename))[:, 0]
+        test_data_multi = np.load(os.path.join(path, test_multi_filename))
+        plt.clf()
+        plt.plot(train_data_add, label=f'Additive train', color='r', linestyle='solid')
+        plt.plot(test_data_add, label=f'Additive test', color='r', linestyle='dot')
+        plt.plot(train_data_multi, label=f'Multiplicative train', color='r', linestyle='solid')
+        plt.plot(test_data_multi, label=f'Multiplicative test', color='r', linestyle='dot')
+        plt.legend()
+        plt.savefig(os.path.join(fig_path,
+                                 filename.replace('.npy', '.png').replace('train_loss_', '').replace('_AddWithLatent',
+                                                                                                     '')))
 
 
 if __name__ == '__main__':
