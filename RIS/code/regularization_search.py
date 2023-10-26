@@ -13,11 +13,11 @@ def main(l1_idx, l2_idx):
     # tasks = ['mouse1', 'mouse2', 'mouse3', 'mouse4', 'mouse5']
     tasks = ['mouse1']
     train_modes = ['AddWithLatent', 'MultiWithLatent']
-    max_epoch = 3000
+    max_epoch = 1200
 
-    l1_levels = [0, 1e-8, 2e-8, 5e-8, 1e-7, 2e-7, 5e-7, 1e-6, 2e-6, 5e-6, 1e-5]
-    l2_levels = [0, 1e-6, 2e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2]
-    smooth_levels = [0, 1e-6, 2e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2]
+    l1_levels = [0, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
+    l2_levels = [0, 1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2, 2e-2, 5e-2]
+    smooth_levels = [0, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
 
     l1 = l1_levels[l1_idx]
     l2 = l2_levels[l2_idx]
@@ -32,7 +32,8 @@ def main(l1_idx, l2_idx):
                 train_loss, test_loss = train_model(task_name, train_mode, from_epoch=0, to_epoch=max_epoch,
                                                     regularization_paras=regularization_paras, reg_marker=reg_marker)
                 np.save(os.path.join(GLOBAL_PATH, 'analysis',
-                                     f'train_loss_{task_name}_{train_mode}_{reg_marker}_{0}_{max_epoch}.npy'), train_loss)
+                                     f'train_loss_{task_name}_{train_mode}_{reg_marker}_{0}_{max_epoch}.npy'),
+                        train_loss)
                 np.save(os.path.join(GLOBAL_PATH, 'analysis',
                                      f'test_loss_{task_name}_{train_mode}_{reg_marker}_{0}_{max_epoch}.npy'), test_loss)
 
