@@ -53,7 +53,8 @@ def nan_MSEloss(y_pred, y):
     return torch.mean(loss) / compensate
 
 
-def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularization_paras=None, full_batch=False):
+def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularization_paras=None, full_batch=False,
+                log_level=0, save_interval=100):
     use_selected_cell = True
     # load dataset
     if use_selected_cell:
@@ -112,7 +113,7 @@ def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularizati
     for i in range(training_epoch):
         train_loss[i] = train_loop(dataloader, model, loss_fn, regularization_fn, optimizer, device, full_batch)
         test_loss[i] = test(model, tensor_position_test, tensor_timestamp_test, tensor_activity_test, loss_fn, device)
-        if (i + 1) % 10 == 0:
+        if (i + 1) % save_interval == 0:
             torch.save(model.state_dict(),
                        os.path.join(GLOBAL_PATH, 'model',
                                     f'{model_name}_{train_mode}_{task_name}_{i + 1 + from_epoch}.m'))
@@ -171,8 +172,7 @@ def main():
     torch.manual_seed(308)
     # tasks = ['mouse1', 'mouse2', 'mouse3', 'mouse4', 'mouse5']
     tasks = ['mouse1']
-    train_modes = ['Additive', 'Multiplicative', 'MultiWithLatent']
-    # train_modes = ['AddWithLatent']
+    train_modes = ['MultiWithLatent', 'AddWithLatent']
     reg_epoch = 500
     max_epoch = 5000
 
@@ -181,7 +181,7 @@ def main():
             print(f'Training {task_name} with {train_mode} Phase Basic')
             regularization_paras = {'lambda_position': 0.0, 'lambda_timestamp': 0.0,
                                     'lambda_position_smooth': 0.0, 'lambda_timestamp_smooth': 0.0,
-                                    'lambda_latent': 0.0}
+                                    'lambda_latent_l1': 0.0, 'lambda_latent_l2': 0.0, }
             train_loss, test_loss = train_model(task_name, train_mode, from_epoch=0, to_epoch=reg_epoch,
                                                 regularization_paras=regularization_paras)
             np.save(os.path.join(GLOBAL_PATH, 'analysis',
@@ -191,7 +191,7 @@ def main():
 
             regularization_paras = {'lambda_position': 1e-3, 'lambda_timestamp': 1e-3,
                                     'lambda_position_smooth': 2e-3, 'lambda_timestamp_smooth': 0.0,
-                                    'lambda_latent': 3e-5}
+                                    'lambda_latent_l1': 3e-5, 'lambda_latent_l2': 1e-3, }
 
 
 if __name__ == '__main__':
