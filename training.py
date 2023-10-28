@@ -18,8 +18,7 @@ def binding_regularization(model, lambda_position=1e-4, lambda_timestamp=0.0,
     # L2 regularization
     position_l2_regularization = lambda_position * torch.linalg.vector_norm(model.position_encoding.weight, 2)
     timestamp_l2_regularization = lambda_timestamp * torch.linalg.vector_norm(model.timestamp_encoding.weight, 2)
-    if False:
-    # if model.use_latent:
+    if model.use_latent:
         latent_l2_regularization = lambda_latent_l2 * torch.linalg.vector_norm(model.latent_projection.weight, 2)
     else:
         latent_l2_regularization = 0
