@@ -7,21 +7,24 @@ from training import train_model
 from METAPARAMETERS import *
 
 
-def main(l1_idx, l2_idx):
+def main(l1_idx, smooth_idx):
     np.random.seed(113)
     torch.manual_seed(308)
     # tasks = ['mouse1', 'mouse2', 'mouse3', 'mouse4', 'mouse5']
     tasks = ['mouse1']
-    train_modes = ['AddWithLatent', 'MultiWithLatent']
+    train_modes = ['MultiWithLatent', 'AddWithLatent']
     max_epoch = 1200
 
-    l1_levels = [0, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
-    l2_levels = [0, 1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2, 2e-2, 5e-2]
+    l1_levels = [0, 1e-7, 1e-5, 1e-3, 1e-1]
+    l2_levels = [0, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
     smooth_levels = [0, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
+    # l1_levels = [0]
+    # l2_levels = [0]
+    # smooth_levels = [0]
 
+    smooth = smooth_levels[smooth_idx]
     l1 = l1_levels[l1_idx]
-    l2 = l2_levels[l2_idx]
-    for smooth in smooth_levels:
+    for l2 in l2_levels:
         for task_name in tasks:
             for train_mode in train_modes:
                 reg_marker = f'{l1}_{l2}_{smooth}'
@@ -39,4 +42,4 @@ def main(l1_idx, l2_idx):
 
 
 if __name__ == '__main__':
-    main()
+    main(0, 0)

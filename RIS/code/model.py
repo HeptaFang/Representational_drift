@@ -31,9 +31,9 @@ class BindingModel(nn.Module):
         self.activation = nn.functional.relu
 
         # weight initialization
-        # nn.init.normal_(self.position_encoding.weight, mean=0, std=1 / position_size ** initialization_exp)
-        # nn.init.normal_(self.timestamp_encoding.weight, mean=0, std=1 / timestamp_size ** initialization_exp)
-        # nn.init.zeros_(self.latent_projection.weight)
+        nn.init.normal_(self.position_encoding.weight, mean=0, std=1 / position_size ** initialization_exp)
+        nn.init.normal_(self.timestamp_encoding.weight, mean=0, std=1 / timestamp_size ** initialization_exp)
+        nn.init.normal_(self.latent_projection.weight, mean=0, std=1 / latent_size ** initialization_exp)
 
     def forward(self, position, timestamp):
         # encoding
