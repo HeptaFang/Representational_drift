@@ -11,11 +11,11 @@ def main():
     train_modes = ['AddWithLatent', 'MultiWithLatent']
     # colors = {'Additive': 'r', 'Multiplicative': 'b', 'MultiWithLatent': 'g'}
     colors = {'AddWithLatent': 'r', 'MultiWithLatent': 'g'}
-    max_epoch = 3000
+    max_epoch = 1200
 
-    l1_levels = [0, 1e-8, 2e-8, 5e-8, 1e-7, 2e-7, 5e-7, 1e-6, 2e-6, 5e-6, 1e-5]
-    l2_levels = [0, 1e-6, 2e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2]
-    smooth_levels = [0, 1e-6, 2e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2]
+    l1_levels = [0, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
+    l2_levels = [0, 1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2, 2e-2, 5e-2]
+    smooth_levels = [0, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
 
     # l1_str = [f'{l1:.0e}' for l1 in l1_levels]
     # l2_str = [f'{l2:.0e}' for l2 in l2_levels]
@@ -69,7 +69,8 @@ def main():
 
             # grid plot
             grid_fig.clear()
-            axs = grid_fig.subplots(2, 2, sharex=True, sharey=True)
+            axs = grid_fig.subplots(3, 2, sharex=True, sharey=True)
+
             min_loss = np.min(all_loss, axis=4)
             vmin = np.min(min_loss)
             vmax = np.max(min_loss)
@@ -77,14 +78,23 @@ def main():
             axs[0][1].imshow(min_loss[:, :, 0, 1], vmin=vmin, vmax=vmax)  # test loss, Additive
             axs[1][0].imshow(min_loss[:, :, 1, 0], vmin=vmin, vmax=vmax)  # train loss, Multiplicative
             axs[1][1].imshow(min_loss[:, :, 1, 1], vmin=vmin, vmax=vmax)  # test loss, Multiplicative
-            axs[0][0].set_title('Minimum train loss')
-            axs[0][1].set_title('Minimum test loss')
+            grid_fig.colorbar(img, ax=axs[0:2].ravel().tolist(), shrink=0.6)
+
+            loss_diff = min_loss[:, :, 1, :] - min_loss[:, :, 0, :]
+            vmax = np.max(np.abs(loss_diff))
+            vmin = -vmax
+            img = axs[2][0].imshow(loss_diff[:, :, 0], vmin=vmin, vmax=vmax, cmap='bwr')  # train loss, Diff
+            axs[2][1].imshow(loss_diff[:, :, 1], vmin=vmin, vmax=vmax, cmap='bwr')  # test loss, Diff
+            grid_fig.colorbar(img, ax=axs[2:3].ravel().tolist())
+
+            axs[0][0].set_title('Min train loss')
+            axs[0][1].set_title('Min test loss')
             axs[0][0].set_ylabel('Additive')
             axs[1][0].set_ylabel('Multiplicative')
+            axs[2][0].set_ylabel('Multi - Add')
             grid_fig.suptitle(f'{task_name} l1={l1_levels[l1_idx]:.0e}')
             grid_fig.supxlabel('smooth regularization')
             grid_fig.supylabel('l2 regularization')
-            grid_fig.colorbar(img, ax=axs.ravel().tolist(), shrink=0.6)
             grid_fig.savefig(os.path.join(fig_path, f'{task_name}_l1level={l1_idx}.png'))
 
 

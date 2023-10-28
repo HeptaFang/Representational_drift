@@ -18,7 +18,8 @@ def binding_regularization(model, lambda_position=1e-4, lambda_timestamp=0.0,
     # L2 regularization
     position_l2_regularization = lambda_position * torch.linalg.vector_norm(model.position_encoding.weight, 2)
     timestamp_l2_regularization = lambda_timestamp * torch.linalg.vector_norm(model.timestamp_encoding.weight, 2)
-    if model.use_latent:
+    if False:
+    # if model.use_latent:
         latent_l2_regularization = lambda_latent_l2 * torch.linalg.vector_norm(model.latent_projection.weight, 2)
     else:
         latent_l2_regularization = 0
@@ -117,8 +118,8 @@ def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularizati
             torch.save(model.state_dict(),
                        os.path.join(GLOBAL_PATH, 'model',
                                     f'{model_name}_{train_mode}_{task_name}_{reg_marker}_{i + 1 + from_epoch}.m'))
-            # print(
-            #     f"Epoch {i + 1 + from_epoch}/{to_epoch}\ntrain_loss: {np.sum(train_loss[i]):>5f} = {train_loss[i][0]:>5f} + {train_loss[i][1]:>5f} + {train_loss[i][2]:>5f} + {train_loss[i][3]:>5f}\ntest_loss: {test_loss[i]:>7f}")
+        print(
+            f"Epoch {i + 1 + from_epoch}/{to_epoch}\ntrain_loss: {np.sum(train_loss[i]):>5f} = {train_loss[i][0]:>5f} + {train_loss[i][1]:>5f} + {train_loss[i][2]:>5f} + {train_loss[i][3]:>5f}\ntest_loss: {test_loss[i]:>7f}")
 
     # plt.plot(train_loss)
     # plt.show()
@@ -172,7 +173,7 @@ def main():
     torch.manual_seed(308)
     # tasks = ['mouse1', 'mouse2', 'mouse3', 'mouse4', 'mouse5']
     tasks = ['mouse1']
-    train_modes = ['Additive', 'Multiplicative', 'MultiWithLatent']
+    train_modes = ['MultiWithLatent', 'Additive', 'Multiplicative' ]
     # train_modes = ['AddWithLatent']
     reg_epoch = 500
     max_epoch = 5000
@@ -182,7 +183,7 @@ def main():
             print(f'Training {task_name} with {train_mode} Phase Basic')
             regularization_paras = {'lambda_position': 0.0, 'lambda_timestamp': 0.0,
                                     'lambda_position_smooth': 0.0, 'lambda_timestamp_smooth': 0.0,
-                                    'lambda_latent': 0.0}
+                                    'lambda_latent_l1': 0.0, 'lambda_latent_l2': 0.0, }
             train_loss, test_loss = train_model(task_name, train_mode, from_epoch=0, to_epoch=reg_epoch,
                                                 regularization_paras=regularization_paras)
             np.save(os.path.join(GLOBAL_PATH, 'analysis',
@@ -192,7 +193,7 @@ def main():
 
             regularization_paras = {'lambda_position': 1e-3, 'lambda_timestamp': 1e-3,
                                     'lambda_position_smooth': 2e-3, 'lambda_timestamp_smooth': 0.0,
-                                    'lambda_latent': 3e-5}
+                                    'lambda_latent_l1': 3e-5, 'lambda_latent_l2': 1e-3, }
 
 
 if __name__ == '__main__':
