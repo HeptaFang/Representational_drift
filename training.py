@@ -54,25 +54,26 @@ def nan_MSEloss(y_pred, y):
 
 
 def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularization_paras=None, full_batch=False,
-                log_level=0, save_interval=100):
-    use_selected_cell = True
+                log_level=0, save_interval=100, folder='dataset', model_name='Default'):
+    # todo: log level: 0: No log, 1: Log every interval, 2: Log every epoch
+    use_selected_cell = False
     # load dataset
     if use_selected_cell:
-        position = np.load(os.path.join(GLOBAL_PATH, 'dataset', task_name + '_position_shuffled_selected.npy'))
-        timestamp = np.load(os.path.join(GLOBAL_PATH, 'dataset', task_name + '_timestamp_shuffled_selected.npy'))
-        activity = np.load(os.path.join(GLOBAL_PATH, 'dataset', task_name + '_activity_shuffled_selected.npy'))
+        position = np.load(os.path.join(GLOBAL_PATH, folder, task_name + '_position_shuffled_selected.npy'))
+        timestamp = np.load(os.path.join(GLOBAL_PATH, folder, task_name + '_timestamp_shuffled_selected.npy'))
+        activity = np.load(os.path.join(GLOBAL_PATH, folder, task_name + '_activity_shuffled_selected.npy'))
     else:
-        position = np.load(os.path.join(GLOBAL_PATH, 'dataset', task_name + '_position_shuffled.npy'))
-        timestamp = np.load(os.path.join(GLOBAL_PATH, 'dataset', task_name + '_timestamp_shuffled.npy'))
-        activity = np.load(os.path.join(GLOBAL_PATH, 'dataset', task_name + '_activity_shuffled.npy'))
+        position = np.load(os.path.join(GLOBAL_PATH, folder, task_name + '_position_shuffled.npy'))
+        timestamp = np.load(os.path.join(GLOBAL_PATH, folder, task_name + '_timestamp_shuffled.npy'))
+        activity = np.load(os.path.join(GLOBAL_PATH, folder, task_name + '_activity_shuffled.npy'))
 
     bin_num = position.shape[1]
     session_num = timestamp.shape[1]
     cell_num = activity.shape[1]
     trial_num = activity.shape[0]
 
-    train_num = int(trial_num * 0.95)
-    test_num = trial_num - train_num
+    test_num = trial_num // 16
+    train_num = trial_num - test_num
 
     position_train = position[:train_num]
     timestamp_train = timestamp[:train_num]
@@ -85,7 +86,6 @@ def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularizati
     print(device)
 
     # load model, create new if from_epoch=0
-    model_name = 'Binding'
     model = load_model(bin_num, session_num, cell_num, train_mode, model_name, task_name, epoch=from_epoch)
 
     training_epoch = to_epoch - from_epoch
