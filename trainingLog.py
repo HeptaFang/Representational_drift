@@ -13,8 +13,8 @@ def main():
     colors = {'AddWithLatent': 'r', 'MultiWithLatent': 'g'}
     max_epoch = 1200
 
-    l1_levels = [0, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
-    l2_levels = [0, 1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2, 2e-2, 5e-2]
+    l1_levels = [0, 1e-7, 1e-5, 1e-3, 1e-1]
+    l2_levels = [0, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
     smooth_levels = [0, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
 
     # l1_str = [f'{l1:.0e}' for l1 in l1_levels]
