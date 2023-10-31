@@ -42,7 +42,8 @@ def main():
                     l2 = l2_levels[l2_idx]
                     smooth = smooth_levels[smooth_idx]
                     reg_marker = f'{l1}_{l2}_{smooth}'
-                    reg_marker_str = f'{l1:.0e}_{l2:.0e}_{smooth:.0e}'
+                    reg_marker_str = f'l1={l1:.0e}_l2={l2:.0e}_smooth={smooth:.0e}'
+                    reg_marker_idx = f'l1={l1_idx}_l2={l2_idx}_smooth={smooth_idx}'
 
                     training_curve_fig.clear()
                     ax = training_curve_fig.add_subplot(111)
@@ -65,15 +66,17 @@ def main():
                     ax.set_xlabel('epoch')
                     ax.set_ylabel('loss')
                     ax.legend()
-                    training_curve_fig.savefig(os.path.join(fig_path, f'{task_name}_{reg_marker_str}.png'))
+                    training_curve_fig.savefig(os.path.join(fig_path, f'{task_name}_{reg_marker_idx}.png'))
 
             # grid plot
             grid_fig.clear()
             axs = grid_fig.subplots(3, 2, sharex=True, sharey=True)
 
             min_loss = np.min(all_loss, axis=4)
-            vmin = np.min(min_loss)
-            vmax = np.max(min_loss)
+            # vmin = np.min(min_loss)
+            # vmax = np.max(min_loss)
+            vmin = 0
+            vmax = 1.1
             img = axs[0][0].imshow(min_loss[:, :, 0, 0], vmin=vmin, vmax=vmax)  # train loss, Additive
             axs[0][1].imshow(min_loss[:, :, 0, 1], vmin=vmin, vmax=vmax)  # test loss, Additive
             axs[1][0].imshow(min_loss[:, :, 1, 0], vmin=vmin, vmax=vmax)  # train loss, Multiplicative
