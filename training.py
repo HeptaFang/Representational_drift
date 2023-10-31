@@ -173,25 +173,25 @@ def main():
     # tasks = ['mouse1', 'mouse2', 'mouse3', 'mouse4', 'mouse5']
     tasks = ['mouse1']
     train_modes = ['MultiWithLatent', 'AddWithLatent']
-    reg_epoch = 500
-    max_epoch = 5000
+    max_epoch = 1000
 
     for task_name in tasks:
         for train_mode in train_modes:
-            print(f'Training {task_name} with {train_mode} Phase Basic')
-            regularization_paras = {'lambda_position': 0.0, 'lambda_timestamp': 0.0,
-                                    'lambda_position_smooth': 0.0, 'lambda_timestamp_smooth': 0.0,
-                                    'lambda_latent_l1': 0.0, 'lambda_latent_l2': 0.0, }
-            train_loss, test_loss = train_model(task_name, train_mode, from_epoch=0, to_epoch=reg_epoch,
-                                                regularization_paras=regularization_paras)
-            np.save(os.path.join(GLOBAL_PATH, 'analysis',
-                                 f'train_loss_{task_name}_{train_mode}_{0}_{reg_epoch}.npy'), train_loss)
-            np.save(os.path.join(GLOBAL_PATH, 'analysis',
-                                 f'test_loss_{task_name}_{train_mode}_{0}_{reg_epoch}.npy'), test_loss)
+            for init_mode in [0, 0.5, 1, -1]:
+                print(f'Training {task_name} with {train_mode} init={init_mode}')
+                regularization_paras = {'lambda_position': 0.0, 'lambda_timestamp': 0.0,
+                                        'lambda_position_smooth': 0.0, 'lambda_timestamp_smooth': 0.0,
+                                        'lambda_latent_l1': 0.0, 'lambda_latent_l2': 0.0, }
+                train_loss, test_loss = train_model(task_name, train_mode, from_epoch=0, to_epoch=max_epoch,
+                                                    regularization_paras=regularization_paras, init_mode=init_mode)
+                np.save(os.path.join(GLOBAL_PATH, 'analysis',
+                                     f'train_loss_{task_name}_{train_mode}_{0}_{max_epoch}_init={init_mode}.npy'), train_loss)
+                np.save(os.path.join(GLOBAL_PATH, 'analysis',
+                                     f'test_loss_{task_name}_{train_mode}_{0}_{max_epoch}_init={init_mode}.npy'), test_loss)
 
-            regularization_paras = {'lambda_position': 1e-3, 'lambda_timestamp': 1e-3,
-                                    'lambda_position_smooth': 2e-3, 'lambda_timestamp_smooth': 0.0,
-                                    'lambda_latent_l1': 3e-5, 'lambda_latent_l2': 1e-3, }
+            # regularization_paras = {'lambda_position': 1e-3, 'lambda_timestamp': 1e-3,
+            #                         'lambda_position_smooth': 2e-3, 'lambda_timestamp_smooth': 0.0,
+            #                         'lambda_latent_l1': 3e-5, 'lambda_latent_l2': 1e-3, }
 
 
 if __name__ == '__main__':
