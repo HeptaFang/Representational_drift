@@ -12,7 +12,7 @@ class BindingModel(nn.Module):
     """
 
     def __init__(self, position_size, timestamp_size, output_size, latent_size=None, binding_mode='mul',
-                 initialization_exp=0.5):
+                 initialization_exp=0.5, init_mode=None):
         super(BindingModel, self).__init__()
         self.position_size = position_size
         self.timestamp_size = timestamp_size
@@ -31,9 +31,16 @@ class BindingModel(nn.Module):
         self.activation = nn.functional.relu
 
         # weight initialization
-        nn.init.normal_(self.position_encoding.weight, mean=0, std=1 / position_size ** initialization_exp)
-        nn.init.normal_(self.timestamp_encoding.weight, mean=0, std=1 / timestamp_size ** initialization_exp)
-        nn.init.normal_(self.latent_projection.weight, mean=0, std=1 / latent_size ** initialization_exp)
+        if init_mode != -1:
+            initialization_exp=init_mode
+            nn.init.normal_(self.position_encoding.weight, mean=0, std=1 / position_size ** initialization_exp)
+            nn.init.normal_(self.timestamp_encoding.weight, mean=0, std=1 / timestamp_size ** initialization_exp)
+            nn.init.normal_(self.latent_projection.weight, mean=0, std=1 / latent_size ** initialization_exp)
+        else:
+            nn.init.normal_(self.position_encoding.weight, mean=0, std=1 / position_size ** initialization_exp)
+            nn.init.normal_(self.timestamp_encoding.weight, mean=0, std=1 / timestamp_size ** initialization_exp)
+            nn.init.zeros_(self.latent_projection.weight)
+
 
     def forward(self, position, timestamp):
         # encoding
@@ -61,19 +68,19 @@ class BindingModel(nn.Module):
 
 
 def load_model(bin_num, session_num, cell_num, train_mode, model_name=None, task_name=None, epoch=0,
-               return_weight=False):
+               return_weight=False, init_mode=None):
     if train_mode == 'Additive':
-        model = BindingModel(bin_num, session_num, cell_num, binding_mode='add')
+        model = BindingModel(bin_num, session_num, cell_num, binding_mode='add', init_mode=init_mode)
     elif train_mode == 'Multiplicative':
-        model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul')
+        model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul', init_mode=init_mode)
     elif train_mode == 'AddWithLatent':
-        model = BindingModel(bin_num, session_num, cell_num, binding_mode='add', latent_size=32)
+        model = BindingModel(bin_num, session_num, cell_num, binding_mode='add', latent_size=32, init_mode=init_mode)
     elif train_mode == 'MultiWithLatent':
-        model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul', latent_size=32)
+        model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul', latent_size=32, init_mode=init_mode)
     elif train_mode == 'MultiWithLatentMedium':
-        model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul', latent_size=128)
+        model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul', latent_size=128, init_mode=init_mode)
     elif train_mode == 'MultiWithLatentLarge':
-        model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul', latent_size=256)
+        model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul', latent_size=256, init_mode=init_mode)
     else:
         raise ValueError('Invalid train mode.')
 
