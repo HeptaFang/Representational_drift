@@ -6,18 +6,32 @@ from METAPARAMETERS import *
 
 def main():
     # generate random encoding matrices
-    position_encoding = np.random.normal(0, BIN_NUM ** -0.5, (BIN_NUM, 1, HIDDEN_NUM))
-    timestamp_encoding = np.random.normal(0, SESSION_NUM ** -0.5, (1, SESSION_NUM, HIDDEN_NUM))
-    projection = np.random.normal(0, (HIDDEN_NUM * SPARSENESS) ** -0.5, (HIDDEN_NUM, CELL_NUM))
+    position_encoding = np.random.normal(0, 1, (BIN_NUM, 1, HIDDEN_NUM))
+    timestamp_encoding = np.random.normal(0, 1, (1, SESSION_NUM, HIDDEN_NUM))
+    print(np.var(position_encoding), np.var(timestamp_encoding))
+    projection = np.random.normal(0, 1 / (np.sqrt(HIDDEN_NUM * SPARSENESS)), (HIDDEN_NUM, CELL_NUM))
 
     sparse_mask = np.random.choice([0, 1], (HIDDEN_NUM, CELL_NUM), p=[1 - SPARSENESS, SPARSENESS])
     projection = projection * sparse_mask
 
+    binding_encoding_mul = position_encoding * timestamp_encoding
+    binding_encoding_add = (position_encoding + timestamp_encoding) * (2 ** -0.5)
+    print(np.var(binding_encoding_mul), np.var(binding_encoding_add))
+
+    projected_mul = binding_encoding_mul @ projection
+    projected_add = binding_encoding_add @ projection
+    print(np.var(projected_mul), np.var(projected_add))
+
     # generate output
     noise_mul = np.random.normal(0, NOISE_LEVEL, (BIN_NUM, SESSION_NUM, CELL_NUM))
     noise_add = np.random.normal(0, NOISE_LEVEL, (BIN_NUM, SESSION_NUM, CELL_NUM))
-    output_mul = (position_encoding * timestamp_encoding) @ projection + noise_mul
-    output_add = (position_encoding + timestamp_encoding) @ projection + noise_add
+    output_mul = (projected_mul + noise_mul)
+    output_add = (projected_add + noise_add)
+    print(np.var(output_mul), np.var(output_add))
+
+    output_mul[output_mul < 0] = 0
+    output_add[output_add < 0] = 0
+    print(np.var(output_mul), np.var(output_add))
 
     # generate dataset
     position = np.zeros((BIN_NUM * SESSION_NUM, BIN_NUM))
