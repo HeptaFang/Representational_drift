@@ -55,7 +55,6 @@ def nan_MSEloss(y_pred, y):
 
 def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularization_paras=None, full_batch=False,
                 log_level=0, save_interval=100, folder='dataset', model_name='Default'):
-    # todo: log level: 0: No log, 1: Log every interval, 2: Log every epoch
     use_selected_cell = False
     # load dataset
     if use_selected_cell:
@@ -117,8 +116,13 @@ def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularizati
             torch.save(model.state_dict(),
                        os.path.join(GLOBAL_PATH, 'model',
                                     f'{model_name}_{train_mode}_{task_name}_{i + 1 + from_epoch}.m'))
-        print(
-            f"Epoch {i + 1 + from_epoch}/{to_epoch}\ntrain_loss: {np.sum(train_loss[i]):>5f} = {train_loss[i][0]:>5f} + {train_loss[i][1]:>5f} + {train_loss[i][2]:>5f} + {train_loss[i][3]:>5f}\ntest_loss: {test_loss[i]:>7f}")
+            if log_level == 1:
+                print(
+                    f"Epoch {i + 1 + from_epoch}/{to_epoch}\ntrain_loss: {np.sum(train_loss[i]):>5f} = {train_loss[i][0]:>5f} + {train_loss[i][1]:>5f} + {train_loss[i][2]:>5f} + {train_loss[i][3]:>5f}\ntest_loss: {test_loss[i]:>7f}")
+
+        if log_level == 2:
+            print(
+                f"Epoch {i + 1 + from_epoch}/{to_epoch}\ntrain_loss: {np.sum(train_loss[i]):>5f} = {train_loss[i][0]:>5f} + {train_loss[i][1]:>5f} + {train_loss[i][2]:>5f} + {train_loss[i][3]:>5f}\ntest_loss: {test_loss[i]:>7f}")
 
     # plt.plot(train_loss)
     # plt.show()
@@ -185,9 +189,11 @@ def main():
                 train_loss, test_loss = train_model(task_name, train_mode, from_epoch=0, to_epoch=max_epoch,
                                                     regularization_paras=regularization_paras, init_mode=init_mode)
                 np.save(os.path.join(GLOBAL_PATH, 'analysis',
-                                     f'train_loss_{task_name}_{train_mode}_{0}_{max_epoch}_init={init_mode}.npy'), train_loss)
+                                     f'train_loss_{task_name}_{train_mode}_{0}_{max_epoch}_init={init_mode}.npy'),
+                        train_loss)
                 np.save(os.path.join(GLOBAL_PATH, 'analysis',
-                                     f'test_loss_{task_name}_{train_mode}_{0}_{max_epoch}_init={init_mode}.npy'), test_loss)
+                                     f'test_loss_{task_name}_{train_mode}_{0}_{max_epoch}_init={init_mode}.npy'),
+                        test_loss)
 
             # regularization_paras = {'lambda_position': 1e-3, 'lambda_timestamp': 1e-3,
             #                         'lambda_position_smooth': 2e-3, 'lambda_timestamp_smooth': 0.0,
