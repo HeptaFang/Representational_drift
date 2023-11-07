@@ -31,9 +31,9 @@ class BindingModel(nn.Module):
         self.activation = nn.functional.relu
 
         # weight initialization
-        nn.init.normal_(self.position_encoding.weight, mean=0, std=1 / position_size ** initialization_exp)
-        nn.init.normal_(self.timestamp_encoding.weight, mean=0, std=1 / timestamp_size ** initialization_exp)
-        nn.init.zeros_(self.latent_projection.weight)
+        # nn.init.normal_(self.position_encoding.weight, mean=0, std=1)
+        # nn.init.normal_(self.timestamp_encoding.weight, mean=0, std=1)
+        # nn.init.normal_(self.latent_projection.weight, mean=0, std=1 / (self.latent_size ** 0.5))
 
     def forward(self, position, timestamp):
         # encoding
@@ -44,7 +44,7 @@ class BindingModel(nn.Module):
         if self.binding_mode == 'mul':
             binding_code = position_code * timestamp_code
         elif self.binding_mode == 'add':
-            binding_code = position_code + timestamp_code
+            binding_code = (position_code + timestamp_code) * (2 ** -0.5)  # normalize output variance
         else:
             raise ValueError('Invalid binding mode')
 

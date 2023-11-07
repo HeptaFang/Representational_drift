@@ -1,16 +1,16 @@
 import time
+import sys
 
-from path_check import main as path_check
-from regularization_search import main as regularization_search
+from train_artificial_dataset import main as train_artificial_dataset
+from METAPARAMETERS import *
 
 
 def main():
     """
     Hub script. Run all the processes in proper order.
     """
-
-    path_check()
-    regularization_search()
+    noise_idx, bias_idx, seed = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
+    train_artificial_dataset(NOISE_LEVELS[noise_idx], BIAS_LEVELS[bias_idx], seed)
 
 
 if __name__ == '__main__':

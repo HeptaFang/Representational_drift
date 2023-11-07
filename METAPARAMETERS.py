@@ -1,4 +1,5 @@
 GLOBAL_PATH = '.'
+# GLOBAL_PATH = '/data/data_TT'
 
 # Artificial dataset
 BIN_NUM = 32
