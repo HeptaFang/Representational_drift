@@ -34,7 +34,8 @@ def main(noise_level, bias, seed):
 
 
 if __name__ == '__main__':
-    for noise_level in NOISE_LEVELS:
-        for bias in BIAS_LEVELS:
-            for seed in range(N_REPEAT):
+    for noise_level in [0.0]:
+        for bias in [0.0]:
+            for seed in range(1):
+                print(noise_level, bias, seed)
                 main(noise_level, bias, seed)

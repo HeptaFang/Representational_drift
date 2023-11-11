@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+from METAPARAMETERS import *
 
-def main():
+
+def main(noise_level, bias):
     # tasks = ['mouse1', 'mouse2', 'mouse3', 'mouse4', 'mouse5']
     tasks = ['mul', 'add']
     train_modes = ['MultiWithLatent', 'AddWithLatent']
@@ -12,33 +14,51 @@ def main():
     colors = {'mul-MultiWithLatent': 'r', 'add-AddWithLatent': 'b',
               'mul-AddWithLatent': 'g', 'add-MultiWithLatent': 'y'}
     max_epoch = 1000
-    
-    fig = plt.figure(figsize=(6, 8), dpi=100)
+
+    fig = plt.figure(figsize=(10, 8), dpi=100)
     ax = fig.add_subplot(111)
 
     for task_name in tasks:
+        full_task_name = f'{task_name}_{noise_level:.1f}_{bias:.1f}'
         max_loss = 0
         min_loss = 100000
 
         for train_mode in train_modes:
-            train_loss = np.load(
-                f'analysis\\train_loss_{task_name}_{train_mode}_0_{max_epoch}.npy')
-            test_loss = np.load(
-                f'analysis\\test_loss_{task_name}_{train_mode}_0_{max_epoch}.npy')
+            all_train_loss = np.zeros((max_epoch, 4, N_REPEAT))
+            all_test_loss = np.zeros((max_epoch, N_REPEAT))
+            for seed in range(N_REPEAT):
+                all_train_loss[:, :, seed] = np.load(
+                    f'analysis\\train_loss_{full_task_name}_{train_mode}_{seed}_0_{max_epoch}.npy')
+                all_test_loss[:, seed] = np.load(
+                    f'analysis\\test_loss_{full_task_name}_{train_mode}_{seed}_0_{max_epoch}.npy')
 
             label = f'{task_name}-{train_mode}'
-            ax.plot(train_loss[:, 0], label=f'{label} train', color=colors[label],
-                        linestyle='solid', )
-            ax.plot(test_loss, label=f'{label} test', color=colors[label],
-                        linestyle='dashed', )
+            # plot train loss and std
+            ax.plot(np.mean(all_train_loss, axis=2)[:, 0], label=f'model={train_mode[:3]}, task={task_name} train',
+                    color=colors[label],
+                    linestyle='solid')
+            ax.fill_between(range(max_epoch),
+                            np.mean(all_train_loss, axis=2)[:, 0] - np.std(all_train_loss, axis=2)[:, 0],
+                            np.mean(all_train_loss, axis=2)[:, 0] + np.std(all_train_loss, axis=2)[:, 0],
+                            alpha=0.2, color=colors[label])
+            # plot test loss and std
+            ax.plot(np.mean(all_test_loss, axis=1), label=f'model={train_mode[:3]}, task={task_name} test',
+                    color=colors[label],
+                    linestyle='dashed', )
+            ax.fill_between(range(max_epoch), np.mean(all_test_loss, axis=1) - np.std(all_test_loss, axis=1),
+                            np.mean(all_test_loss, axis=1) + np.std(all_test_loss, axis=1),
+                            alpha=0.2, color=colors[label])
 
     ax.legend()
-    ax.set_ylim(-0.1, 1.0)
+    ax.set_title(f'Noise level: {noise_level:.1f}, Bias: {bias:.1f}')
+    ax.set_ylim(-0.1, 1.5)
     ax.set_xlabel('Epoch')
     ax.set_ylabel('Loss')
 
-    fig.savefig(f'image\\artificial.png')
+    fig.savefig(f'image\\artificial_dataset\\artificial_{noise_level:.1f}_{bias:.1f}.png')
 
 
 if __name__ == '__main__':
-    main()
+    for noise_level in NOISE_LEVELS:
+        for bias in BIAS_LEVELS:
+            main(noise_level, bias)

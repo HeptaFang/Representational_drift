@@ -9,8 +9,8 @@ from METAPARAMETERS import *
 
 
 def main(noise_level, bias, seed):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
+    np.random.seed(seed + 113)
+    torch.manual_seed(seed + 308)
     tasks = ['mul', 'add']
     train_modes = ['MultiWithLatent', 'AddWithLatent']
     max_epoch = 1000

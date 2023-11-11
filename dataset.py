@@ -38,6 +38,7 @@ def main(noise_level, bias):
     output_mul = output_mul / np.std(output_mul)
     output_add = output_add / np.std(output_add)
     print('normalize:', np.var(output_mul), np.var(output_add))
+    print('mean square', np.mean(output_mul * output_mul), np.mean(output_add * output_add))
 
     # generate dataset
     position = np.zeros((BIN_NUM * SESSION_NUM, BIN_NUM))
@@ -65,5 +66,6 @@ if __name__ == '__main__':
     np.random.seed(11308)
     for noise_level in NOISE_LEVELS:
         for bias in BIAS_LEVELS:
+            print()
             print(f'noise_level: {noise_level}, bias: {bias}')
             main(noise_level, bias)

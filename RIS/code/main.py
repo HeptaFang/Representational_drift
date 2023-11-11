@@ -9,7 +9,8 @@ def main():
     """
     Hub script. Run all the processes in proper order.
     """
-    noise_idx, bias_idx, seed = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
+    noise_idx, bias_idx, seed = int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4])
+    print('start training:', NOISE_LEVELS[noise_idx], BIAS_LEVELS[bias_idx], seed, flush=True)
     train_artificial_dataset(NOISE_LEVELS[noise_idx], BIAS_LEVELS[bias_idx], seed)
 
 
