@@ -22,20 +22,31 @@ def main(noise_level, bias, seed):
             regularization_paras = {'lambda_position': 0.0, 'lambda_timestamp': 0.0,
                                     'lambda_position_smooth': 0.0, 'lambda_timestamp_smooth': 0.0,
                                     'lambda_latent_l1': 0.0, 'lambda_latent_l2': 0.0, }
+            # regularization_paras = {'lambda_position': 5e-3, 'lambda_timestamp': 5e-3,
+            #                         'lambda_position_smooth': 0.0, 'lambda_timestamp_smooth': 0.0,
+            #                         'lambda_latent_l1': 0.0, 'lambda_latent_l2': 5e-3, }
             train_loss, test_loss = train_model(full_task_name, train_mode,
-                                                from_epoch=0, to_epoch=max_epoch,
+                                                from_epoch=0, to_epoch=200,
                                                 regularization_paras=regularization_paras,
                                                 folder=os.path.join(GLOBAL_PATH, 'dataset', 'artificial_dataset'),
-                                                model_name='Artificial', log_level=1)
-            np.save(os.path.join(GLOBAL_PATH, 'analysis',
-                                 f'train_loss_{full_task_name}_{train_mode}_{seed}_{0}_{max_epoch}.npy'), train_loss)
-            np.save(os.path.join(GLOBAL_PATH, 'analysis',
-                                 f'test_loss_{full_task_name}_{train_mode}_{seed}_{0}_{max_epoch}.npy'), test_loss)
+                                                model_name='Artificial', log_level=2)
+            regularization_paras = {'lambda_position': 1e-2, 'lambda_timestamp': 1e-2,
+                                    'lambda_position_smooth': 0.0, 'lambda_timestamp_smooth': 0.0,
+                                    'lambda_latent_l1': 0.0, 'lambda_latent_l2': 1e-2, }
+            train_loss, test_loss = train_model(full_task_name, train_mode,
+                                                from_epoch=200, to_epoch=max_epoch,
+                                                regularization_paras=regularization_paras,
+                                                folder=os.path.join(GLOBAL_PATH, 'dataset', 'artificial_dataset'),
+                                                model_name='Artificial', log_level=2)
+            # np.save(os.path.join(GLOBAL_PATH, 'analysis',
+            #                      f'train_loss_{full_task_name}_{train_mode}_{seed}_{0}_{max_epoch}.npy'), train_loss)
+            # np.save(os.path.join(GLOBAL_PATH, 'analysis',
+            #                      f'test_loss_{full_task_name}_{train_mode}_{seed}_{0}_{max_epoch}.npy'), test_loss)
 
 
 if __name__ == '__main__':
     for noise_level in [0.0]:
-        for bias in [0.0]:
+        for bias in [-2.0]:
             for seed in range(1):
                 print(noise_level, bias, seed)
                 main(noise_level, bias, seed)
