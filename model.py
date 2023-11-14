@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from scipy.special import erfinv
 import os
 
 from METAPARAMETERS import *
@@ -12,7 +13,7 @@ class BindingModel(nn.Module):
     """
 
     def __init__(self, position_size, timestamp_size, output_size, latent_size=None, binding_mode='mul',
-                 initialization_exp=0.5):
+                 bias_mode='train'):
         super(BindingModel, self).__init__()
         self.position_size = position_size
         self.timestamp_size = timestamp_size
@@ -20,6 +21,10 @@ class BindingModel(nn.Module):
         self.use_latent = True
         self.latent_size = latent_size
         self.binding_mode = binding_mode
+        self.bias_mode = bias_mode
+
+        self.sparseness_map = None
+        self.bias_z_map = None
 
         if latent_size is None:
             self.use_latent = False
@@ -27,13 +32,23 @@ class BindingModel(nn.Module):
 
         self.position_encoding = nn.Linear(self.position_size, self.latent_size, bias=False)
         self.timestamp_encoding = nn.Linear(self.timestamp_size, self.latent_size, bias=False)
-        self.latent_projection = nn.Linear(self.latent_size, self.output_size)
+        self.latent_projection = nn.Linear(self.latent_size, self.output_size, bias=False)
+        if self.bias_mode == 'train':
+            self.bias = nn.Parameter(torch.zeros(self.output_size))
+        else:
+            self.bias = torch.zeros(self.output_size)
         self.activation = nn.functional.relu
 
         # weight initialization
         # nn.init.normal_(self.position_encoding.weight, mean=0, std=1)
         # nn.init.normal_(self.timestamp_encoding.weight, mean=0, std=1)
         # nn.init.normal_(self.latent_projection.weight, mean=0, std=1 / (self.latent_size ** 0.5))
+
+    def load_sparseness_map(self, sparseness_map):
+        # sparseness_map should be 1D: cell_num
+        self.sparseness_map = sparseness_map
+        assert self.sparseness_map.shape[0] == self.output_size and len(self.sparseness_map.shape) == 1
+        self.bias_z_map = 2 ** 0.5 * erfinv(2 * self.sparseness_map - 1)
 
     def forward(self, position, timestamp):
         # encoding
@@ -54,8 +69,15 @@ class BindingModel(nn.Module):
         else:
             binding_code_projected = binding_code
 
+        # bias
+        if self.bias_mode == 'sparse':
+            bias = self.bias_z_map * torch.std(binding_code_projected, dim=1, keepdim=True) + torch.mean(
+                binding_code_projected, dim=1, keepdim=True)
+        elif self.bias_mode == 'train':
+            bias = self.bias
+
         # activation
-        output = self.activation(binding_code_projected)
+        output = self.activation(binding_code_projected + bias)
 
         return output
 
