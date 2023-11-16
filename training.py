@@ -13,22 +13,35 @@ EPOCH_NUM = 1000
 
 def binding_regularization(model, lambda_position=1e-4, lambda_timestamp=0.0,
                            lambda_position_smooth=1e-4, lambda_timestamp_smooth=0.0,
-                           lambda_latent_l1=1e-6, lambda_latent_l2=0.0):
+                           lambda_latent_l1=1e-6, lambda_latent_l2=0.0, lambda_bias=0.0):
     # return 0, 0, 0
     # L2 regularization
-    position_l2_regularization = lambda_position * torch.linalg.vector_norm(model.position_encoding.weight, 2)
-    timestamp_l2_regularization = lambda_timestamp * torch.linalg.vector_norm(model.timestamp_encoding.weight, 2)
-    if model.use_latent:
+    if lambda_position != 0.0:
+        position_l2_regularization = lambda_position * torch.linalg.vector_norm(model.position_encoding.weight, 2)
+    else:
+        position_l2_regularization = 0
+    if lambda_timestamp != 0.0:
+        timestamp_l2_regularization = lambda_timestamp * torch.linalg.vector_norm(model.timestamp_encoding.weight, 2)
+    else:
+        timestamp_l2_regularization = 0
+
+    if model.use_latent and lambda_latent_l2 != 0.0:
         latent_l2_regularization = lambda_latent_l2 * torch.linalg.vector_norm(model.latent_projection.weight, 2)
     else:
         latent_l2_regularization = 0
 
     # smooth regularization for position & timestamp encoding
-    position_diff_weight = torch.diff(model.position_encoding.weight, dim=1)
-    position_smooth_regularization = lambda_position_smooth * torch.linalg.vector_norm(position_diff_weight[:20], 2)
-    position_smooth_regularization += lambda_position_smooth * torch.linalg.vector_norm(position_diff_weight[-20:], 2)
-    timestamp_diff_weight = torch.diff(model.timestamp_encoding.weight, dim=1)
-    timestamp_smooth_regularization = lambda_timestamp_smooth * torch.linalg.vector_norm(timestamp_diff_weight, 2)
+    if lambda_position_smooth != 0.0:
+        position_diff_weight = torch.diff(model.position_encoding.weight, dim=1)
+        position_smooth_regularization = lambda_position_smooth * torch.linalg.vector_norm(position_diff_weight[:20], 2)
+        position_smooth_regularization += lambda_position_smooth * torch.linalg.vector_norm(position_diff_weight[-20:], 2)
+    else:
+        position_smooth_regularization = 0
+    if lambda_timestamp_smooth != 0.0:
+        timestamp_diff_weight = torch.diff(model.timestamp_encoding.weight, dim=1)
+        timestamp_smooth_regularization = lambda_timestamp_smooth * torch.linalg.vector_norm(timestamp_diff_weight, 2)
+    else:
+        timestamp_smooth_regularization = 0
 
     # L1 regularization for latent space transformation
     if model.use_latent:
@@ -36,9 +49,15 @@ def binding_regularization(model, lambda_position=1e-4, lambda_timestamp=0.0,
     else:
         latent_l1_regularization = 0
 
+    # bias regularization
+    if lambda_bias != 0.0:
+        bias_regularization = lambda_bias * torch.sum(model.bias)
+    else:
+        bias_regularization = 0
+
     l2 = position_l2_regularization + timestamp_l2_regularization + latent_l2_regularization
     smooth = position_smooth_regularization + timestamp_smooth_regularization
-    l1 = latent_l1_regularization
+    l1 = latent_l1_regularization + bias_regularization
 
     return l2, smooth, l1
 

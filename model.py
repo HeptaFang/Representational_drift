@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from scipy.special import erfinv
+import numpy as np
 import os
 
 from METAPARAMETERS import *
@@ -13,7 +14,7 @@ class BindingModel(nn.Module):
     """
 
     def __init__(self, position_size, timestamp_size, output_size, latent_size=None, binding_mode='mul',
-                 bias_mode='train'):
+                 bias_mode='fixed'):
         super(BindingModel, self).__init__()
         self.position_size = position_size
         self.timestamp_size = timestamp_size
@@ -35,8 +36,10 @@ class BindingModel(nn.Module):
         self.latent_projection = nn.Linear(self.latent_size, self.output_size, bias=False)
         if self.bias_mode == 'train':
             self.bias = nn.Parameter(torch.zeros(self.output_size))
+        elif self.bias_mode == 'fixed':
+            self.bias = -2
         else:
-            self.bias = torch.zeros(self.output_size)
+            self.bias = None
         self.activation = nn.functional.relu
 
         # weight initialization
@@ -71,13 +74,11 @@ class BindingModel(nn.Module):
 
         # bias
         if self.bias_mode == 'sparse':
-            bias = self.bias_z_map * torch.std(binding_code_projected, dim=1, keepdim=True) + torch.mean(
+            self.bias = self.bias_z_map * torch.std(binding_code_projected, dim=1, keepdim=True) + torch.mean(
                 binding_code_projected, dim=1, keepdim=True)
-        elif self.bias_mode == 'train':
-            bias = self.bias
 
         # activation
-        output = self.activation(binding_code_projected + bias)
+        output = self.activation(binding_code_projected + self.bias)
 
         return output
 
