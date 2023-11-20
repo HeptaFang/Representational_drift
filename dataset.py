@@ -35,6 +35,7 @@ def main(noise_level, bias):
     print('activation:', np.var(output_mul), np.var(output_add))
 
     # normalize
+    print('factors:', np.std(output_mul), np.std(output_add))
     output_mul = output_mul / np.std(output_mul)
     output_add = output_add / np.std(output_add)
     print('normalize:', np.var(output_mul), np.var(output_add))
@@ -45,11 +46,11 @@ def main(noise_level, bias):
     timestamp = np.zeros((BIN_NUM * SESSION_NUM, SESSION_NUM))
     activity_mul = np.zeros((BIN_NUM * SESSION_NUM, CELL_NUM))
     activity_add = np.zeros((BIN_NUM * SESSION_NUM, CELL_NUM))
-
-    for i in range(CELL_NUM):
-        plt.imshow(output_mul[:, :, i])
-        plt.title(f'mul, Cell {i}')
-        plt.show()
+    #
+    # for i in range(CELL_NUM):
+    #     plt.imshow(output_mul[:, :, i])
+    #     plt.title(f'mul, Cell {i}')
+    #     plt.show()
 
     for i in range(BIN_NUM):
         for j in range(SESSION_NUM):
@@ -63,9 +64,15 @@ def main(noise_level, bias):
     np.save(os.path.join(path, f'mul_{noise_level:.1f}_{bias:.1f}_position.npy'), position)
     np.save(os.path.join(path, f'mul_{noise_level:.1f}_{bias:.1f}_timestamp.npy'), timestamp)
     np.save(os.path.join(path, f'mul_{noise_level:.1f}_{bias:.1f}_activity.npy'), activity_mul)
+    np.save(os.path.join(path, f'mul_{noise_level:.1f}_{bias:.1f}_position_encoding.npy'), position_encoding)
+    np.save(os.path.join(path, f'mul_{noise_level:.1f}_{bias:.1f}_timestamp_encoding.npy'), timestamp_encoding)
+    np.save(os.path.join(path, f'mul_{noise_level:.1f}_{bias:.1f}_projection.npy'), projection)
     np.save(os.path.join(path, f'add_{noise_level:.1f}_{bias:.1f}_position.npy'), position)
     np.save(os.path.join(path, f'add_{noise_level:.1f}_{bias:.1f}_timestamp.npy'), timestamp)
     np.save(os.path.join(path, f'add_{noise_level:.1f}_{bias:.1f}_activity.npy'), activity_add)
+    np.save(os.path.join(path, f'add_{noise_level:.1f}_{bias:.1f}_position_encoding.npy'), position_encoding)
+    np.save(os.path.join(path, f'add_{noise_level:.1f}_{bias:.1f}_timestamp_encoding.npy'), timestamp_encoding)
+    np.save(os.path.join(path, f'add_{noise_level:.1f}_{bias:.1f}_projection.npy'), projection)
 
 
 if __name__ == '__main__':

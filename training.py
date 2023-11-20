@@ -73,7 +73,7 @@ def nan_MSEloss(y_pred, y):
 
 
 def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularization_paras=None, full_batch=False,
-                log_level=0, save_interval=100, folder='dataset', model_name='Default'):
+                log_level=0, save_interval=100, folder='dataset', model_name='Default', bias_mode='train', reconstruction=False):
     use_selected_cell = False
     # load dataset
     if use_selected_cell:
@@ -104,7 +104,7 @@ def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularizati
     print(device)
 
     # load model, create new if from_epoch=0
-    model = load_model(bin_num, session_num, cell_num, train_mode, model_name, task_name, epoch=from_epoch)
+    model = load_model(bin_num, session_num, cell_num, train_mode, model_name, task_name, epoch=from_epoch, bias_mode=bias_mode, reconstruction=reconstruction)
 
     training_epoch = to_epoch - from_epoch
     model.to(device)
@@ -119,7 +119,7 @@ def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularizati
     dataset = TensorDataset(tensor_position_train, tensor_timestamp_train, tensor_activity_train)
     dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
-    optimizer = torch.optim.Adam(model.parameters())
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-2)
     loss_fn = nan_MSEloss
     regularization_fn = binding_regularization
     if regularization_paras is not None:

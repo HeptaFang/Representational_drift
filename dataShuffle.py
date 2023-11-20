@@ -6,7 +6,6 @@ from METAPARAMETERS import *
 
 
 def main(noise_level, bias):
-    np.random.seed(11308)
     # dataset_names = [f'mouse{i + 1}' for i in range(5)]
     dataset_names = ['mul', 'add']
     feature_names = ['position', 'timestamp', 'activity']
@@ -38,6 +37,7 @@ def main(noise_level, bias):
 
 
 if __name__ == '__main__':
+    np.random.seed(11308)
     for noise_level in NOISE_LEVELS:
         for bias in BIAS_LEVELS:
             main(noise_level, bias)

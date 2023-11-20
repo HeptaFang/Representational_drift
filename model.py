@@ -3,6 +3,7 @@ from torch import nn
 from scipy.special import erfinv
 import numpy as np
 import os
+from functools import partial
 
 from METAPARAMETERS import *
 
@@ -14,7 +15,7 @@ class BindingModel(nn.Module):
     """
 
     def __init__(self, position_size, timestamp_size, output_size, latent_size=None, binding_mode='mul',
-                 bias_mode='fixed'):
+                 bias_mode='train'):
         super(BindingModel, self).__init__()
         self.position_size = position_size
         self.timestamp_size = timestamp_size
@@ -23,6 +24,7 @@ class BindingModel(nn.Module):
         self.latent_size = latent_size
         self.binding_mode = binding_mode
         self.bias_mode = bias_mode
+        print(bias_mode)
 
         self.sparseness_map = None
         self.bias_z_map = None
@@ -34,18 +36,26 @@ class BindingModel(nn.Module):
         self.position_encoding = nn.Linear(self.position_size, self.latent_size, bias=False)
         self.timestamp_encoding = nn.Linear(self.timestamp_size, self.latent_size, bias=False)
         self.latent_projection = nn.Linear(self.latent_size, self.output_size, bias=False)
+        self.bias = nn.Parameter(torch.zeros(self.output_size))
         if self.bias_mode == 'train':
-            self.bias = nn.Parameter(torch.zeros(self.output_size))
+            pass
         elif self.bias_mode == 'fixed':
-            self.bias = -2
+            # set bias to -2
+            self.bias.data = torch.ones(self.output_size) * 0
+            self.bias.requires_grad = False
+        elif self.bias_mode == 'sparseness':
+            pass
         else:
             self.bias = None
+        # self.activation = partial(nn.functional.leaky_relu, negative_slope=0.01)
         self.activation = nn.functional.relu
 
         # weight initialization
         # nn.init.normal_(self.position_encoding.weight, mean=0, std=1)
         # nn.init.normal_(self.timestamp_encoding.weight, mean=0, std=1)
         # nn.init.normal_(self.latent_projection.weight, mean=0, std=1 / (self.latent_size ** 0.5))
+    def set_bias(self, bias):
+        self.bias.data = torch.ones(self.output_size) * bias
 
     def load_sparseness_map(self, sparseness_map):
         # sparseness_map should be 1D: cell_num
@@ -73,7 +83,7 @@ class BindingModel(nn.Module):
             binding_code_projected = binding_code
 
         # bias
-        if self.bias_mode == 'sparse':
+        if self.bias_mode == 'sparseness':
             self.bias = self.bias_z_map * torch.std(binding_code_projected, dim=1, keepdim=True) + torch.mean(
                 binding_code_projected, dim=1, keepdim=True)
 
@@ -84,15 +94,15 @@ class BindingModel(nn.Module):
 
 
 def load_model(bin_num, session_num, cell_num, train_mode, model_name=None, task_name=None, epoch=0,
-               return_weight=False):
+               return_weight=False, bias_mode='train',reconstruction=False):
     if train_mode == 'Additive':
         model = BindingModel(bin_num, session_num, cell_num, binding_mode='add')
     elif train_mode == 'Multiplicative':
         model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul')
     elif train_mode == 'AddWithLatent':
-        model = BindingModel(bin_num, session_num, cell_num, binding_mode='add', latent_size=32)
+        model = BindingModel(bin_num, session_num, cell_num, binding_mode='add', latent_size=32, bias_mode=bias_mode)
     elif train_mode == 'MultiWithLatent':
-        model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul', latent_size=32)
+        model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul', latent_size=32, bias_mode=bias_mode)
     elif train_mode == 'MultiWithLatentMedium':
         model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul', latent_size=128)
     elif train_mode == 'MultiWithLatentLarge':
@@ -105,6 +115,10 @@ def load_model(bin_num, session_num, cell_num, train_mode, model_name=None, task
         model_path = os.path.join(GLOBAL_PATH, 'model',
                                   model_name + '_' + train_mode + '_' + task_name + '_' + str(epoch) + '.m')
         weight_dict = torch.load(model_path)
+        model.load_state_dict(weight_dict)
+
+    if reconstruction:
+        weight_dict = torch.load(os.path.join(GLOBAL_PATH, 'dataset', 'artificial_dataset', 'mul_0.0_-2.0_reconstruction.m'))
         model.load_state_dict(weight_dict)
 
     if return_weight:
