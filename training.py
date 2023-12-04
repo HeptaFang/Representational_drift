@@ -119,7 +119,7 @@ def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularizati
     dataset = TensorDataset(tensor_position_train, tensor_timestamp_train, tensor_activity_train)
     dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-2)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     loss_fn = nan_MSEloss
     regularization_fn = binding_regularization
     if regularization_paras is not None:

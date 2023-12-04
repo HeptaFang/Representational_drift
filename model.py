@@ -41,7 +41,7 @@ class BindingModel(nn.Module):
             pass
         elif self.bias_mode == 'fixed':
             # set bias to -2
-            self.bias.data = torch.ones(self.output_size) * 0
+            self.bias.data = torch.ones(self.output_size) * (-2)
             self.bias.requires_grad = False
         elif self.bias_mode == 'sparseness':
             pass
@@ -54,7 +54,12 @@ class BindingModel(nn.Module):
         # nn.init.normal_(self.position_encoding.weight, mean=0, std=1)
         # nn.init.normal_(self.timestamp_encoding.weight, mean=0, std=1)
         # nn.init.normal_(self.latent_projection.weight, mean=0, std=1 / (self.latent_size ** 0.5))
-    def set_bias(self, bias):
+    def set_bias(self, bias=None):
+        if bias is None:
+            if self.bias_mode == 'fixed':
+                self.bias.data = torch.ones(self.output_size) * (-2)
+            return
+
         self.bias.data = torch.ones(self.output_size) * bias
 
     def load_sparseness_map(self, sparseness_map):
@@ -100,9 +105,9 @@ def load_model(bin_num, session_num, cell_num, train_mode, model_name=None, task
     elif train_mode == 'Multiplicative':
         model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul')
     elif train_mode == 'AddWithLatent':
-        model = BindingModel(bin_num, session_num, cell_num, binding_mode='add', latent_size=32, bias_mode=bias_mode)
+        model = BindingModel(bin_num, session_num, cell_num, binding_mode='add', latent_size=MODEL_HIDDEN_NUM, bias_mode=bias_mode)
     elif train_mode == 'MultiWithLatent':
-        model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul', latent_size=32, bias_mode=bias_mode)
+        model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul', latent_size=MODEL_HIDDEN_NUM, bias_mode=bias_mode)
     elif train_mode == 'MultiWithLatentMedium':
         model = BindingModel(bin_num, session_num, cell_num, binding_mode='mul', latent_size=128)
     elif train_mode == 'MultiWithLatentLarge':
@@ -120,6 +125,8 @@ def load_model(bin_num, session_num, cell_num, train_mode, model_name=None, task
     if reconstruction:
         weight_dict = torch.load(os.path.join(GLOBAL_PATH, 'dataset', 'artificial_dataset', 'mul_0.0_-2.0_reconstruction.m'))
         model.load_state_dict(weight_dict)
+
+    model.set_bias()
 
     if return_weight:
         return model, weight_dict
