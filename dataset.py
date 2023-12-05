@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from METAPARAMETERS import *
 
 
-def main(noise_level, bias):
+def generate_dataset(noise_level, bias):
     # generate random encoding matrices
     position_encoding = np.random.normal(0, 1, (BIN_NUM, 1, HIDDEN_NUM))
     timestamp_encoding = np.random.normal(0, 1, (1, SESSION_NUM, HIDDEN_NUM))
@@ -136,10 +136,14 @@ def main(noise_level, bias):
     np.save(os.path.join(path, f'add_{noise_level:.1f}_{bias:.1f}_projection.npy'), projection)
 
 
-if __name__ == '__main__':
+def main():
     np.random.seed(17)
     for noise_level in NOISE_LEVELS:
         for bias in BIAS_LEVELS:
             print()
             print(f'noise_level: {noise_level}, bias: {bias}')
-            main(noise_level, bias)
+            generate_dataset(noise_level, bias)
+
+
+if __name__ == '__main__':
+    main()

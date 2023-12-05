@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from METAPARAMETERS import *
 
 
-def main(noise_level, bias):
+def pooling_dataset(noise_level, bias):
     # dataset_names = [f'mouse{i + 1}' for i in range(5)]
     dataset_names = ['mul', 'add']
     feature_names = ['position', 'timestamp', 'activity']
@@ -86,7 +86,11 @@ def main(noise_level, bias):
         #     plt.close()
 
 
-if __name__ == '__main__':
+def main():
     for noise_level in NOISE_LEVELS:
         for bias in BIAS_LEVELS:
-            main(noise_level, bias)
+            pooling_dataset(noise_level, bias)
+
+
+if __name__ == '__main__':
+    main()
