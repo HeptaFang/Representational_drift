@@ -8,7 +8,64 @@ def main(noise_level, bias):
     # generate random encoding matrices
     position_encoding = np.random.normal(0, 1, (BIN_NUM, 1, HIDDEN_NUM))
     timestamp_encoding = np.random.normal(0, 1, (1, SESSION_NUM, HIDDEN_NUM))
-    print('encoding:', np.var(position_encoding), np.var(timestamp_encoding))
+
+    # fit the encoding with polynomial
+    if FIT_ORDER > 0:
+        position_x = np.linspace(-1, 1, BIN_NUM)
+        timestamp_x = np.linspace(-1, 1, SESSION_NUM)
+        position_encoding_fit = np.zeros((BIN_NUM, 1, HIDDEN_NUM))
+        timestamp_encoding_fit = np.zeros((1, SESSION_NUM, HIDDEN_NUM))
+        for i in range(HIDDEN_NUM):  # for each hidden unit
+            position_encoding_fit[:, 0, i] = np.polyval(np.polyfit(position_x, position_encoding[:, 0, i], FIT_ORDER),
+                                                        position_x)
+            timestamp_encoding_fit[0, :, i] = np.polyval(
+                np.polyfit(timestamp_x, timestamp_encoding[0, :, i], FIT_ORDER),
+                timestamp_x)
+        # normalize fitting variance to 1
+        position_encoding_fit = position_encoding_fit / np.sqrt(np.var(position_encoding_fit))
+        timestamp_encoding_fit = timestamp_encoding_fit / np.sqrt(np.var(timestamp_encoding_fit))
+
+        # # plot the encoding and show
+        # for i in range(HIDDEN_NUM):
+        #     plt.figure()
+        #     plt.subplot(2, 1, 1)
+        #     plt.plot(position_x, position_encoding[:, 0, i])
+        #     plt.plot(position_x, position_encoding_fit[:, 0, i])
+        #     plt.legend(['original', 'fit'])
+        #     plt.title('position encoding')
+        #     plt.subplot(2, 1, 2)
+        #     plt.plot(timestamp_x, timestamp_encoding[0, :, i])
+        #     plt.plot(timestamp_x, timestamp_encoding_fit[0, :, i])
+        #     plt.legend(['original', 'fit'])
+        #     plt.title('timestamp encoding')
+        #     plt.show()
+
+        # # plot value distribution, range from -4 to 4, show standard normal distribution
+        # x = np.linspace(-4, 4, 100)
+        # plt.figure()
+        # plt.subplot(2, 2, 1)
+        # plt.hist(position_encoding.reshape(-1), bins=100, range=(-4, 4), density=True)
+        # plt.plot(x, np.exp(-x ** 2 / 2) / np.sqrt(2 * np.pi))
+        # plt.title('position encoding')
+        # plt.subplot(2, 2, 2)
+        # plt.hist(timestamp_encoding.reshape(-1), bins=100, range=(-4, 4), density=True)
+        # plt.plot(x, np.exp(-x ** 2 / 2) / np.sqrt(2 * np.pi))
+        # plt.title('timestamp encoding')
+        # plt.subplot(2, 2, 3)
+        # plt.hist(position_encoding_fit.reshape(-1), bins=100, range=(-4, 4), density=True)
+        # plt.plot(x, np.exp(-x ** 2 / 2) / np.sqrt(2 * np.pi))
+        # plt.title('position encoding fit')
+        # plt.subplot(2, 2, 4)
+        # plt.hist(timestamp_encoding_fit.reshape(-1), bins=100, range=(-4, 4), density=True)
+        # plt.plot(x, np.exp(-x ** 2 / 2) / np.sqrt(2 * np.pi))
+        # plt.title('timestamp encoding fit')
+        # plt.show()
+
+        position_encoding = position_encoding_fit
+        timestamp_encoding = timestamp_encoding_fit
+
+    print(f'encoding var: {np.var(position_encoding)}, {np.var(timestamp_encoding)}')
+    print(f'encoding mean: {np.mean(position_encoding)}, {np.mean(timestamp_encoding)}')
     projection = np.random.normal(0, 1 / (np.sqrt(HIDDEN_NUM * SPARSENESS)), (HIDDEN_NUM, CELL_NUM))
 
     sparse_mask = np.random.choice([0, 1], (HIDDEN_NUM, CELL_NUM), p=[1 - SPARSENESS, SPARSENESS])
@@ -16,23 +73,27 @@ def main(noise_level, bias):
 
     binding_encoding_mul = position_encoding * timestamp_encoding
     binding_encoding_add = (position_encoding + timestamp_encoding) * (2 ** -0.5)
-    print('binding:', np.var(binding_encoding_mul), np.var(binding_encoding_add))
+    print(f'binding var: {np.var(binding_encoding_mul)}, {np.var(binding_encoding_add)}')
+    print(f'binding mean: {np.mean(binding_encoding_mul)}, {np.mean(binding_encoding_add)}')
 
     projected_mul = binding_encoding_mul @ projection
     projected_add = binding_encoding_add @ projection
-    print('projection:', np.var(projected_mul), np.var(projected_add))
+    print(f'projected var: {np.var(projected_mul)}, {np.var(projected_add)}')
+    print(f'projected mean: {np.mean(projected_mul)}, {np.mean(projected_add)}')
 
     # generate output
     noise_mul = np.random.normal(0, noise_level, (BIN_NUM, SESSION_NUM, CELL_NUM))
     noise_add = np.random.normal(0, noise_level, (BIN_NUM, SESSION_NUM, CELL_NUM))
     output_mul = projected_mul + noise_mul + bias
     output_add = projected_add + noise_add + bias
-    print('noise and bias:', np.var(output_mul), np.var(output_add))
+    print(f'output var: {np.var(output_mul)}, {np.var(output_add)}')
+    print(f'output mean: {np.mean(output_mul)}, {np.mean(output_add)}')
 
     # activation function
     output_mul[output_mul < 0] = 0
     output_add[output_add < 0] = 0
-    print('activation:', np.var(output_mul), np.var(output_add))
+    print(f'activation var: {np.var(output_mul)}, {np.var(output_add)}')
+    print(f'activation mean: {np.mean(output_mul)}, {np.mean(output_add)}')
 
     # normalize
     print('factors:', np.std(output_mul), np.std(output_add))
@@ -76,7 +137,7 @@ def main(noise_level, bias):
 
 
 if __name__ == '__main__':
-    np.random.seed(11308)
+    np.random.seed(17)
     for noise_level in NOISE_LEVELS:
         for bias in BIAS_LEVELS:
             print()
