@@ -8,10 +8,10 @@ HIDDEN_NUM = 32
 MODEL_HIDDEN_NUM = 32
 CELL_NUM = 128
 SPARSENESS = 0.1
-FIT_ORDER = 7
+FIT_ORDER = 3
 
 # training parameters
-NOISE_LEVELS = (0.0, 0.5, 1.0, 5.0)
+NOISE_LEVELS = (0.0, 0.5, 1.0)
 BIAS_LEVELS = (-2.0, -1.0, 0.0, 1.0, 2.0)
 # NOISE_LEVELS = (0.0, 0.5, 1.0)
 # BIAS_LEVELS = (-2.0, -1.0)

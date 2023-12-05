@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from METAPARAMETERS import *
 
 
-def pooling_dataset(noise_level, bias):
+def pooling_dataset(noise_level, bias, plot=False):
     # dataset_names = [f'mouse{i + 1}' for i in range(5)]
     dataset_names = ['mul', 'add']
     feature_names = ['position', 'timestamp', 'activity']
@@ -68,29 +68,32 @@ def pooling_dataset(noise_level, bias):
         print(position.shape, timestamp.shape, activity.shape)
         print(position_pooled.shape, timestamp_pooled.shape, activity_pooled.shape)
 
-        # plot
-        # for i in range(16):
-        #     plt.figure(figsize=(10, 10), dpi=200)
-        #     plt.imshow(activity[:, i].reshape((BIN_NUM, SESSION_NUM)), aspect='auto')
-        #     plt.title(f'cell {i}')
-        #     plt.savefig(
-        #         os.path.join(GLOBAL_PATH, 'image', 'artificial_dataset', 'cells', f'{full_dataset_name}_cell{i}.png'))
-        #     plt.close()
-        #
-        #     plt.figure(figsize=(10, 10), dpi=200)
-        #     plt.imshow(activity_pooled[:, i].reshape((BIN_NUM // pooling_size, SESSION_NUM // pooling_size)),
-        #                aspect='auto')
-        #     plt.title(f'cell {i}')
-        #     plt.savefig(os.path.join(GLOBAL_PATH, 'image', 'artificial_dataset', 'cells',
-        #                              f'{full_dataset_name}_cell{i}_pooled.png'))
-        #     plt.close()
+        if plot:
+            print('plotting pooling samples')
+            # plot
+            for i in range(8):
+                plt.figure(figsize=(10, 5), dpi=80)
+
+                plt.subplot(1, 2, 1)
+                plt.imshow(activity[:, i].reshape((BIN_NUM, SESSION_NUM)), aspect='auto')
+                plt.title(f'original')
+                plt.subplot(1, 2, 2)
+                plt.imshow(activity_pooled[:, i].reshape((BIN_NUM // pooling_size, SESSION_NUM // pooling_size)),
+                           aspect='auto')
+                plt.title(f'pooled')
+
+                plt.suptitle(f'cell {i}, pooling size: {pooling_size}, method: {pooling_method.__name__}\n{dataset}, noise level: {noise_level}, bias: {bias}')
+                plt.savefig(os.path.join(GLOBAL_PATH, 'image', 'artificial_dataset', 'cells',
+                                         f'{full_dataset_name}_cell{i}.png'))
+                plt.close()
 
 
-def main():
+def main(plot=False):
     for noise_level in NOISE_LEVELS:
         for bias in BIAS_LEVELS:
-            pooling_dataset(noise_level, bias)
+            print(f'noise level: {noise_level}, bias: {bias}')
+            pooling_dataset(noise_level, bias, plot=plot)
 
 
 if __name__ == '__main__':
-    main()
+    main(plot=True)

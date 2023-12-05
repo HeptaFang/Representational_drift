@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from METAPARAMETERS import *
 
 
-def generate_dataset(noise_level, bias):
+def generate_dataset(noise_level, bias, plot=False):
     # generate random encoding matrices
     position_encoding = np.random.normal(0, 1, (BIN_NUM, 1, HIDDEN_NUM))
     timestamp_encoding = np.random.normal(0, 1, (1, SESSION_NUM, HIDDEN_NUM))
@@ -25,41 +25,51 @@ def generate_dataset(noise_level, bias):
         position_encoding_fit = position_encoding_fit / np.sqrt(np.var(position_encoding_fit))
         timestamp_encoding_fit = timestamp_encoding_fit / np.sqrt(np.var(timestamp_encoding_fit))
 
-        # # plot the encoding and show
-        # for i in range(HIDDEN_NUM):
-        #     plt.figure()
-        #     plt.subplot(2, 1, 1)
-        #     plt.plot(position_x, position_encoding[:, 0, i])
-        #     plt.plot(position_x, position_encoding_fit[:, 0, i])
-        #     plt.legend(['original', 'fit'])
-        #     plt.title('position encoding')
-        #     plt.subplot(2, 1, 2)
-        #     plt.plot(timestamp_x, timestamp_encoding[0, :, i])
-        #     plt.plot(timestamp_x, timestamp_encoding_fit[0, :, i])
-        #     plt.legend(['original', 'fit'])
-        #     plt.title('timestamp encoding')
-        #     plt.show()
+        if plot:
+            # plot the encoding
+            print('plotting encoding')
+            for i in range(HIDDEN_NUM):
+                plt.figure()
+                plt.subplot(2, 1, 1)
+                plt.plot(position_x, position_encoding[:, 0, i])
+                plt.plot(position_x, position_encoding_fit[:, 0, i])
+                plt.legend(['original', 'fit'])
+                plt.title('position encoding')
+                plt.subplot(2, 1, 2)
+                plt.plot(timestamp_x, timestamp_encoding[0, :, i])
+                plt.plot(timestamp_x, timestamp_encoding_fit[0, :, i])
+                plt.legend(['original', 'fit'])
+                plt.title('timestamp encoding')
+                # plt.show()
+                plt.suptitle(f'encoding_dim{i}_{noise_level:.1f}_{bias:.1f}')
+                plt.savefig(os.path.join(GLOBAL_PATH, 'image', 'artificial_dataset', 'dataset_detail',
+                                         f'encoding_dim{i}_{noise_level:.1f}_{bias:.1f}.png'))
+                plt.close()
 
-        # # plot value distribution, range from -4 to 4, show standard normal distribution
-        # x = np.linspace(-4, 4, 100)
-        # plt.figure()
-        # plt.subplot(2, 2, 1)
-        # plt.hist(position_encoding.reshape(-1), bins=100, range=(-4, 4), density=True)
-        # plt.plot(x, np.exp(-x ** 2 / 2) / np.sqrt(2 * np.pi))
-        # plt.title('position encoding')
-        # plt.subplot(2, 2, 2)
-        # plt.hist(timestamp_encoding.reshape(-1), bins=100, range=(-4, 4), density=True)
-        # plt.plot(x, np.exp(-x ** 2 / 2) / np.sqrt(2 * np.pi))
-        # plt.title('timestamp encoding')
-        # plt.subplot(2, 2, 3)
-        # plt.hist(position_encoding_fit.reshape(-1), bins=100, range=(-4, 4), density=True)
-        # plt.plot(x, np.exp(-x ** 2 / 2) / np.sqrt(2 * np.pi))
-        # plt.title('position encoding fit')
-        # plt.subplot(2, 2, 4)
-        # plt.hist(timestamp_encoding_fit.reshape(-1), bins=100, range=(-4, 4), density=True)
-        # plt.plot(x, np.exp(-x ** 2 / 2) / np.sqrt(2 * np.pi))
-        # plt.title('timestamp encoding fit')
-        # plt.show()
+            print('plotting distribution')
+            # plot value distribution, range from -4 to 4, show standard normal distribution
+            x = np.linspace(-4, 4, 100)
+            plt.figure()
+            plt.subplot(2, 2, 1)
+            plt.hist(position_encoding.reshape(-1), bins=100, range=(-4, 4), density=True)
+            plt.plot(x, np.exp(-x ** 2 / 2) / np.sqrt(2 * np.pi))
+            plt.title('position encoding')
+            plt.subplot(2, 2, 2)
+            plt.hist(timestamp_encoding.reshape(-1), bins=100, range=(-4, 4), density=True)
+            plt.plot(x, np.exp(-x ** 2 / 2) / np.sqrt(2 * np.pi))
+            plt.title('timestamp encoding')
+            plt.subplot(2, 2, 3)
+            plt.hist(position_encoding_fit.reshape(-1), bins=100, range=(-4, 4), density=True)
+            plt.plot(x, np.exp(-x ** 2 / 2) / np.sqrt(2 * np.pi))
+            plt.title('position encoding fit')
+            plt.subplot(2, 2, 4)
+            plt.hist(timestamp_encoding_fit.reshape(-1), bins=100, range=(-4, 4), density=True)
+            plt.plot(x, np.exp(-x ** 2 / 2) / np.sqrt(2 * np.pi))
+            plt.title('timestamp encoding fit')
+            # plt.show()
+            plt.suptitle(f'encoding distribution_{noise_level:.1f}_{bias:.1f}')
+            plt.savefig(os.path.join(GLOBAL_PATH, 'image', 'artificial_dataset', 'dataset_detail',
+                                     f'encoding_distribution_{noise_level:.1f}_{bias:.1f}.png'))
 
         position_encoding = position_encoding_fit
         timestamp_encoding = timestamp_encoding_fit
@@ -136,13 +146,13 @@ def generate_dataset(noise_level, bias):
     np.save(os.path.join(path, f'add_{noise_level:.1f}_{bias:.1f}_projection.npy'), projection)
 
 
-def main():
+def main(plot=False):
     np.random.seed(17)
     for noise_level in NOISE_LEVELS:
         for bias in BIAS_LEVELS:
             print()
             print(f'noise_level: {noise_level}, bias: {bias}')
-            generate_dataset(noise_level, bias)
+            generate_dataset(noise_level, bias, plot=plot)
 
 
 if __name__ == '__main__':
