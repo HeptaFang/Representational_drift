@@ -71,7 +71,7 @@ def pooling_dataset(noise_level, bias, plot=False):
         if plot:
             print('plotting pooling samples')
             # plot
-            for i in range(8):
+            for i in range(32):
                 plt.figure(figsize=(10, 5), dpi=80)
 
                 plt.subplot(1, 2, 1)
