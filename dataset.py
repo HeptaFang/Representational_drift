@@ -13,6 +13,7 @@ def generate_dataset(noise_level, bias, plot=False, override_fit_order=-1):
         fit_order = override_fit_order
     else:
         fit_order = FIT_ORDER
+    print(f'fit order: {fit_order}')
 
     # fit the encoding with polynomial
     if fit_order is not None:
