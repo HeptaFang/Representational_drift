@@ -13,3 +13,7 @@ BIAS_LEVELS = (-2.0, -1.0, 0.0, 1.0, 2.0)
 # NOISE_LEVELS = (0.0, 0.5, 1.0)
 # BIAS_LEVELS = (-2.0, -1.0)
 N_REPEAT = 8
+
+# preprocessing parameters
+SELECTED = False
+POOLED = True

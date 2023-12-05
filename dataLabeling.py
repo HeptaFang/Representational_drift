@@ -2,6 +2,8 @@ import numpy as np
 
 
 def main():
+    # wide type to long type transformation
+    # next time use pandas.DataFrame
     for mouse_i in range(5):
         # activity_raw = np.load(f'dataset\\mouse{mouse_i + 1}_activity_raw.npy')
         activity_raw = np.load(f'dataset\\mouse{mouse_i + 1}_activity_selected_raw.npy')

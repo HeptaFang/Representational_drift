@@ -34,7 +34,8 @@ def binding_regularization(model, lambda_position=1e-4, lambda_timestamp=0.0,
     if lambda_position_smooth != 0.0:
         position_diff_weight = torch.diff(model.position_encoding.weight, dim=1)
         position_smooth_regularization = lambda_position_smooth * torch.linalg.vector_norm(position_diff_weight[:20], 2)
-        position_smooth_regularization += lambda_position_smooth * torch.linalg.vector_norm(position_diff_weight[-20:], 2)
+        position_smooth_regularization += lambda_position_smooth * torch.linalg.vector_norm(position_diff_weight[-20:],
+                                                                                            2)
     else:
         position_smooth_regularization = 0
     if lambda_timestamp_smooth != 0.0:
@@ -73,17 +74,17 @@ def nan_MSEloss(y_pred, y):
 
 
 def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularization_paras=None, full_batch=False,
-                log_level=0, save_interval=100, folder='dataset', model_name='Default', bias_mode='train', reconstruction=False):
-    use_selected_cell = False
+                log_level=0, save_interval=100, folder='dataset', model_name='Default', bias_mode='train',
+                reconstruction=False):
     # load dataset
-    if use_selected_cell:
-        position = np.load(os.path.join(GLOBAL_PATH, folder, task_name + '_position_shuffled_selected.npy'))
-        timestamp = np.load(os.path.join(GLOBAL_PATH, folder, task_name + '_timestamp_shuffled_selected.npy'))
-        activity = np.load(os.path.join(GLOBAL_PATH, folder, task_name + '_activity_shuffled_selected.npy'))
-    else:
-        position = np.load(os.path.join(GLOBAL_PATH, folder, task_name + '_position_shuffled.npy'))
-        timestamp = np.load(os.path.join(GLOBAL_PATH, folder, task_name + '_timestamp_shuffled.npy'))
-        activity = np.load(os.path.join(GLOBAL_PATH, folder, task_name + '_activity_shuffled.npy'))
+    data_suffix = '_shuffled'
+    if SELECTED:
+        data_suffix += '_selected'
+    if POOLED:
+        data_suffix += '_pooled'
+    position = np.load(os.path.join(GLOBAL_PATH, folder, task_name + '_position' + data_suffix + '.npy'))
+    timestamp = np.load(os.path.join(GLOBAL_PATH, folder, task_name + '_timestamp' + data_suffix + '.npy'))
+    activity = np.load(os.path.join(GLOBAL_PATH, folder, task_name + '_activity' + data_suffix + '.npy'))
 
     bin_num = position.shape[1]
     session_num = timestamp.shape[1]
@@ -104,7 +105,8 @@ def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularizati
     print(device)
 
     # load model, create new if from_epoch=0
-    model = load_model(bin_num, session_num, cell_num, train_mode, model_name, task_name, epoch=from_epoch, bias_mode=bias_mode, reconstruction=reconstruction)
+    model = load_model(bin_num, session_num, cell_num, train_mode, model_name, task_name, epoch=from_epoch,
+                       bias_mode=bias_mode, reconstruction=reconstruction)
 
     training_epoch = to_epoch - from_epoch
     model.to(device)

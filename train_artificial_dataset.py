@@ -31,7 +31,7 @@ def main(noise_level, bias, seed):
                                                 from_epoch=200, to_epoch=1000,
                                                 regularization_paras=regularization_paras,
                                                 folder=os.path.join(GLOBAL_PATH, 'dataset', 'artificial_dataset'),
-                                                model_name='Artificial', log_level=2, bias_mode='fixed', reconstruction=False)
+                                                model_name='Artificial', log_level=2, bias_mode='train', reconstruction=False)
             # train_loss, test_loss = train_model(full_task_name, train_mode,
             #                                     from_epoch=200, to_epoch=400,
             #                                     regularization_paras=regularization_paras,

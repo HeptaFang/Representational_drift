@@ -9,8 +9,17 @@ def main():
     """
     Hub script. Run all the processes in proper order.
     """
-    noise_idx, bias_idx, seed = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
-    train_artificial_dataset(NOISE_LEVELS[noise_idx], BIAS_LEVELS[bias_idx], seed)
+
+    # Create artificial dataset
+    # - create dataset
+
+    # - labeling and shuffling
+
+    # - pooling
+
+    # Training
+
+
 
 
 if __name__ == '__main__':
