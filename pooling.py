@@ -96,4 +96,4 @@ def main(plot=False):
 
 
 if __name__ == '__main__':
-    main(plot=True)
+    main(plot=False)

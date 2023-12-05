@@ -4,22 +4,27 @@ import matplotlib.pyplot as plt
 from METAPARAMETERS import *
 
 
-def generate_dataset(noise_level, bias, plot=False):
+def generate_dataset(noise_level, bias, plot=False, override_fit_order=-1):
     # generate random encoding matrices
     position_encoding = np.random.normal(0, 1, (BIN_NUM, 1, HIDDEN_NUM))
     timestamp_encoding = np.random.normal(0, 1, (1, SESSION_NUM, HIDDEN_NUM))
 
+    if override_fit_order != -1:
+        fit_order = override_fit_order
+    else:
+        fit_order = FIT_ORDER
+
     # fit the encoding with polynomial
-    if FIT_ORDER > 0:
+    if fit_order is not None:
         position_x = np.linspace(-1, 1, BIN_NUM)
         timestamp_x = np.linspace(-1, 1, SESSION_NUM)
         position_encoding_fit = np.zeros((BIN_NUM, 1, HIDDEN_NUM))
         timestamp_encoding_fit = np.zeros((1, SESSION_NUM, HIDDEN_NUM))
         for i in range(HIDDEN_NUM):  # for each hidden unit
-            position_encoding_fit[:, 0, i] = np.polyval(np.polyfit(position_x, position_encoding[:, 0, i], FIT_ORDER),
+            position_encoding_fit[:, 0, i] = np.polyval(np.polyfit(position_x, position_encoding[:, 0, i], fit_order),
                                                         position_x)
             timestamp_encoding_fit[0, :, i] = np.polyval(
-                np.polyfit(timestamp_x, timestamp_encoding[0, :, i], FIT_ORDER),
+                np.polyfit(timestamp_x, timestamp_encoding[0, :, i], fit_order),
                 timestamp_x)
         # normalize fitting variance to 1
         position_encoding_fit = position_encoding_fit / np.sqrt(np.var(position_encoding_fit))
@@ -146,14 +151,14 @@ def generate_dataset(noise_level, bias, plot=False):
     np.save(os.path.join(path, f'add_{noise_level:.1f}_{bias:.1f}_projection.npy'), projection)
 
 
-def main(plot=False):
+def main(plot=False, override_fit_order=-1):
     np.random.seed(17)
     for noise_level in NOISE_LEVELS:
         for bias in BIAS_LEVELS:
             print()
             print(f'noise_level: {noise_level}, bias: {bias}')
-            generate_dataset(noise_level, bias, plot=plot)
+            generate_dataset(noise_level, bias, plot=plot, override_fit_order=override_fit_order)
 
 
 if __name__ == '__main__':
-    main()
+    main(plot=False)

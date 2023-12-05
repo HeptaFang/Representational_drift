@@ -7,9 +7,10 @@ from pooling import main as pooling
 from dataShuffle import main as shuffle
 from train_artificial_dataset import main as train_artificial_dataset
 
-def generate_dataset():
+
+def generate_dataset(override_fit_order=None):
     # Create artificial dataset
-    create_dataset()
+    create_dataset(override_fit_order=override_fit_order)
     if POOLED:
         pooling()
     shuffle()
@@ -20,8 +21,9 @@ def main():
     Hub script. Run all the processes in proper order.
     """
 
-    generate_dataset()
-    train_artificial_dataset()
+    for override_fit_order in [None, 3, 7]:
+        generate_dataset(override_fit_order=override_fit_order)
+        train_artificial_dataset(override_fit_order=override_fit_order)
     # Training
 
 

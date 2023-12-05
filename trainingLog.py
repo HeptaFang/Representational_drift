@@ -63,5 +63,5 @@ if __name__ == '__main__':
     for noise_level in [0.0, 0.5]:
         for bias in [-2.0, -1.0]:
             # for fit_pool in [(3, True), (7, True), (3, False), (7, False), (None, False), (None, True)]:
-            for fit_pool in [(3, True)]:
+            for fit_pool in [(3, True), (None, True)]:
                 main(noise_level, bias, fit_pool[0], fit_pool[1])
