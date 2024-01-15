@@ -47,5 +47,5 @@ elif PARAMETER_MODE == 'manual':
     N_REPEAT = 8
 
     # preprocessing parameters
-    SELECTED = False
-    POOLED = True
+    SELECTED = True
+    POOLED = False

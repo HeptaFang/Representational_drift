@@ -15,10 +15,10 @@ def main():
         timestamp = np.zeros((total_size, session_num))
         activity = np.zeros((total_size, cell_num))
 
-        for p in range(bin_num):
-            for s in range(session_num):
-                for cue in range(2):
-                    i = p * session_num * 2 + s * 2 + cue
+        for cue in range(2):
+            for p in range(bin_num):
+                for s in range(session_num):
+                    i = cue * bin_num * session_num + p * session_num + s
                     position[i, p + cue * bin_num] = 1
                     timestamp[i, s] = 1
                     activity[i] = activity_raw[s, p, cue+1]

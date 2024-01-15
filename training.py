@@ -75,7 +75,7 @@ def nan_MSEloss(y_pred, y):
 
 def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularization_paras=None, full_batch=False,
                 log_level=0, save_interval=100, folder='dataset', model_name='Default', bias_mode='train',
-                reconstruction=False):
+                reconstruction=False, test_data_idx=-1):
     # load dataset
     data_suffix = '_shuffled'
     if SELECTED:
@@ -94,12 +94,23 @@ def train_model(task_name, train_mode, from_epoch=0, to_epoch=1000, regularizati
     test_num = trial_num // 16
     train_num = trial_num - test_num
 
-    position_train = position[:train_num]
-    timestamp_train = timestamp[:train_num]
-    activity_train = activity[:train_num]
-    position_test = position[train_num:]
-    timestamp_test = timestamp[train_num:]
-    activity_test = activity[train_num:]
+    if test_data_idx == -1:
+        position_train = position[:train_num]
+        timestamp_train = timestamp[:train_num]
+        activity_train = activity[:train_num]
+        position_test = position[train_num:]
+        timestamp_test = timestamp[train_num:]
+        activity_test = activity[train_num:]
+    else:
+        position_train = np.concatenate(
+            (position[:test_num * test_data_idx], position[test_num * (test_data_idx + 1):]))
+        timestamp_train = np.concatenate(
+            (timestamp[:test_num * test_data_idx], timestamp[test_num * (test_data_idx + 1):]))
+        activity_train = np.concatenate(
+            (activity[:test_num * test_data_idx], activity[test_num * (test_data_idx + 1):]))
+        position_test = position[test_num * test_data_idx:test_num * (test_data_idx + 1)]
+        timestamp_test = timestamp[test_num * test_data_idx:test_num * (test_data_idx + 1)]
+        activity_test = activity[test_num * test_data_idx:test_num * (test_data_idx + 1)]
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(device)
@@ -193,33 +204,55 @@ def test(model, position, timestamp, activity, loss_fn, device):
 
 
 def main():
-    np.random.seed(113)
-    torch.manual_seed(308)
-    # tasks = ['mouse1', 'mouse2', 'mouse3', 'mouse4', 'mouse5']
-    tasks = ['mouse1']
-    train_modes = ['MultiWithLatent', 'AddWithLatent']
-    max_epoch = 1000
+    for test_idx in range(16):
+        tasks = ['mouse1', 'mouse2', 'mouse3', 'mouse4', 'mouse5']
+        # tasks = ['mouse1']
+        train_modes = ['MultiWithLatent', 'AddWithLatent']
+        reg_epoch = 200
+        max_epoch = 1000
 
-    for task_name in tasks:
-        for train_mode in train_modes:
-            for init_mode in [0, 0.5, 1, -1]:
-                print(f'Training {task_name} with {train_mode} init={init_mode}')
+        for task_name in tasks:
+            for train_mode in train_modes:
+                print(f'Training {task_name} with {train_mode}')
                 regularization_paras = {'lambda_position': 0.0, 'lambda_timestamp': 0.0,
                                         'lambda_position_smooth': 0.0, 'lambda_timestamp_smooth': 0.0,
                                         'lambda_latent_l1': 0.0, 'lambda_latent_l2': 0.0, }
-                train_loss, test_loss = train_model(task_name, train_mode, from_epoch=0, to_epoch=max_epoch,
-                                                    regularization_paras=regularization_paras, init_mode=init_mode)
+                train_loss, test_loss = train_model(task_name, train_mode, from_epoch=0, to_epoch=reg_epoch,
+                                                    regularization_paras=regularization_paras, log_level=1,
+                                                    test_data_idx=test_idx)
                 np.save(os.path.join(GLOBAL_PATH, 'analysis',
-                                     f'train_loss_{task_name}_{train_mode}_{0}_{max_epoch}_init={init_mode}.npy'),
+                                     f'train_loss_{task_name}_{train_mode}_{0}_{reg_epoch}_pool={POOLED}_{test_idx}.npy'),
                         train_loss)
                 np.save(os.path.join(GLOBAL_PATH, 'analysis',
-                                     f'test_loss_{task_name}_{train_mode}_{0}_{max_epoch}_init={init_mode}.npy'),
+                                     f'test_loss_{task_name}_{train_mode}_{0}_{reg_epoch}_pool={POOLED}_{test_idx}.npy'),
                         test_loss)
 
-            # regularization_paras = {'lambda_position': 1e-3, 'lambda_timestamp': 1e-3,
-            #                         'lambda_position_smooth': 2e-3, 'lambda_timestamp_smooth': 0.0,
-            #                         'lambda_latent_l1': 3e-5, 'lambda_latent_l2': 1e-3, }
+                train_loss, test_loss = train_model(task_name, train_mode, from_epoch=reg_epoch, to_epoch=max_epoch,
+                                                    regularization_paras=regularization_paras, log_level=1,
+                                                    test_data_idx=test_idx)
+                np.save(os.path.join(GLOBAL_PATH, 'analysis',
+                                     f'train_loss_{task_name}_{train_mode}_{reg_epoch}_{max_epoch}_pool={POOLED}_{test_idx}.npy'),
+                        train_loss)
+                np.save(os.path.join(GLOBAL_PATH, 'analysis',
+                                     f'test_loss_{task_name}_{train_mode}_{reg_epoch}_{max_epoch}_pool={POOLED}_{test_idx}.npy'),
+                        test_loss)
+
+                regularization_paras = {'lambda_position': 1e-3, 'lambda_timestamp': 1e-3,
+                                        'lambda_position_smooth': 2e-3, 'lambda_timestamp_smooth': 0.0,
+                                        'lambda_latent_l1': 3e-5, 'lambda_latent_l2': 1e-3, }
+
+                train_loss, test_loss = train_model(task_name, train_mode, from_epoch=reg_epoch, to_epoch=max_epoch,
+                                                    regularization_paras=regularization_paras, log_level=1,
+                                                    test_data_idx=test_idx)
+                np.save(os.path.join(GLOBAL_PATH, 'analysis',
+                                     f'train_loss_{task_name}_{train_mode}_{reg_epoch}_{max_epoch}_regularize_pool={POOLED}_{test_idx}.npy'),
+                        train_loss)
+                np.save(os.path.join(GLOBAL_PATH, 'analysis',
+                                     f'test_loss_{task_name}_{train_mode}_{reg_epoch}_{max_epoch}_regularize_pool={POOLED}_{test_idx}.npy'),
+                        test_loss)
 
 
 if __name__ == '__main__':
+    np.random.seed(113)
+    torch.manual_seed(308)
     main()

@@ -4,103 +4,126 @@ import matplotlib.pyplot as plt
 from METAPARAMETERS import *
 
 
-def main(noise_level, bias, fit_mode):
+def main():
     separate_task = False
-    # tasks = ['mouse1', 'mouse2', 'mouse3', 'mouse4', 'mouse5']
-    tasks = ['mul', 'add']
+    tasks = ['mouse1', 'mouse2', 'mouse3', 'mouse4', 'mouse5']
+    # tasks = ['mouse1']
+    # tasks = ['mul', 'add']
     train_modes = ['MultiWithLatent', 'AddWithLatent']
 
     # colors = {'Additive': 'r', 'Multiplicative': 'b', 'MultiWithLatent': 'g'}
-    # colors = {'AddWithLatent': 'r', 'MultiWithLatent': 'g'}
-    colors = {'mul-MultiWithLatent': 'r', 'add-AddWithLatent': 'b',
-              'mul-AddWithLatent': 'g', 'add-MultiWithLatent': 'y'}
-    max_epoch = 1200
+    colors = {'AddWithLatent': 'b', 'MultiWithLatent': 'r'}
+    # colors = {'mul-MultiWithLatent': 'r', 'add-AddWithLatent': 'b',
+    #           'mul-AddWithLatent': 'g', 'add-MultiWithLatent': 'y'}
+    reg_epoch = 200
+    max_epoch = 1000
 
-    fig = plt.figure(figsize=(16, 16), dpi=100)
-    axs = []
+    for task_name in tasks:
+        fig_basic = plt.figure(figsize=(12, 8), dpi=100)
+        ax_basic = fig_basic.add_subplot(121)
+        ax_regularize = fig_basic.add_subplot(122)
+        # fig_regularize = plt.figure(figsize=(6, 8), dpi=100)
+        # ax_regularize = fig_regularize.add_subplot(111)
+        x_basic = np.arange(0, reg_epoch, 1)
+        x_extent = np.arange(reg_epoch, max_epoch, 1)
+        max_loss = 0
+        min_loss = 100000
 
-    for pool_mode in [False, True]:
-        ax = fig.add_subplot(2, 2, 2 if pool_mode else 1)
-        axs.append(ax)
-        for task_name in tasks:
-            full_task_name = f'{task_name}_{noise_level:.1f}_{bias:.1f}'
+        for train_mode in train_modes:
+            all_basic_train_loss = []
+            all_basic_test_loss = []
+            all_extent_train_loss = []
+            all_extent_test_loss = []
+            all_regularize_train_loss = []
+            all_regularize_test_loss = []
 
-            for train_mode in train_modes:
-                all_train_loss = np.zeros((max_epoch, 4, N_REPEAT))
-                all_test_loss = np.zeros((max_epoch, N_REPEAT))
-                for seed in range(1):
-                    all_train_loss[:, :, seed] = np.load(
-                        f'analysis\\artificial_dataset\\train_loss_{full_task_name}_{train_mode}_{seed}_0_{max_epoch}_fit={fit_mode}_pool={pool_mode}.npy')
-                    all_test_loss[:, seed] = np.load(
-                        f'analysis\\artificial_dataset\\test_loss_{full_task_name}_{train_mode}_{seed}_0_{max_epoch}_fit={fit_mode}_pool={pool_mode}.npy')
+            for test_idx in range(16):
+                basic_train_loss = np.load(
+                    f'analysis\\train_loss_{task_name}_{train_mode}_0_{reg_epoch}_pool={POOLED}_{test_idx}.npy')
+                basic_test_loss = np.load(
+                    f'analysis\\test_loss_{task_name}_{train_mode}_0_{reg_epoch}_pool={POOLED}_{test_idx}.npy')
+                extent_train_loss = np.load(
+                    f'analysis\\train_loss_{task_name}_{train_mode}_{reg_epoch}_{max_epoch}_pool={POOLED}_{test_idx}.npy')
+                extent_test_loss = np.load(
+                    f'analysis\\test_loss_{task_name}_{train_mode}_{reg_epoch}_{max_epoch}_pool={POOLED}_{test_idx}.npy')
+                regularize_train_loss = np.load(
+                    f'analysis\\train_loss_{task_name}_{train_mode}_{reg_epoch}_{max_epoch}_regularize_pool={POOLED}_{test_idx}.npy')
+                regularize_test_loss = np.load(
+                    f'analysis\\test_loss_{task_name}_{train_mode}_{reg_epoch}_{max_epoch}_regularize_pool={POOLED}_{test_idx}.npy')
 
-                label = f'{task_name}-{train_mode}'
-                ax.plot(np.mean(all_train_loss, axis=2)[:, 0], label=f'model={train_mode[:3]}, task={task_name} train',
-                        color=colors[label],
-                        linestyle='solid')
-                ax.plot(np.mean(all_test_loss, axis=1), label=f'model={train_mode[:3]}, task={task_name} test',
-                        color=colors[label],
-                        linestyle='dashed', )
+                all_basic_train_loss.append(basic_train_loss)
+                all_basic_test_loss.append(basic_test_loss)
+                all_extent_train_loss.append(extent_train_loss)
+                all_extent_test_loss.append(extent_test_loss)
+                all_regularize_train_loss.append(regularize_train_loss)
+                all_regularize_test_loss.append(regularize_test_loss)
 
-        ax.legend()
-        if pool_mode:
-            ax.set_title(f'Pooled')
-        else:
-            ax.set_title(f'Original')
-        # ax.set_ylim(-0.1, 1.5)
-        ax.set_xlabel('Epoch')
-        ax.set_ylabel('Loss')
+            basic_train_loss = np.mean(np.array(all_basic_train_loss), axis=0)
+            basic_test_loss = np.mean(np.array(all_basic_test_loss), axis=0)
+            extent_train_loss = np.mean(np.array(all_extent_train_loss), axis=0)
+            extent_test_loss = np.mean(np.array(all_extent_test_loss), axis=0)
+            regularize_train_loss = np.mean(np.array(all_regularize_train_loss), axis=0)
+            regularize_test_loss = np.mean(np.array(all_regularize_test_loss), axis=0)
+            basic_train_std = np.std(np.array(all_basic_train_loss), axis=0)
+            basic_test_std = np.std(np.array(all_basic_test_loss), axis=0)
+            extent_train_std = np.std(np.array(all_extent_train_loss), axis=0)
+            extent_test_std = np.std(np.array(all_extent_test_loss), axis=0)
+            regularize_train_std = np.std(np.array(all_regularize_train_loss), axis=0)
+            regularize_test_std = np.std(np.array(all_regularize_test_loss), axis=0)
 
-        # ratios
-        ax = fig.add_subplot(2, 2, 4 if pool_mode else 3)
-        axs.append(ax)
-        for task_name in tasks:
-            full_task_name = f'{task_name}_{noise_level:.1f}_{bias:.1f}'
+            ax_basic.plot(x_basic, basic_train_loss[:, 0], label=f'{train_mode} train', color=colors[train_mode],
+                          linestyle='solid', )
+            ax_basic.plot(x_basic, basic_test_loss, label=f'{train_mode} test', color=colors[train_mode],
+                          linestyle='dashed')
+            ax_basic.plot(x_extent, extent_train_loss[:, 0], color=colors[train_mode], linestyle='solid')
+            ax_basic.plot(x_extent, extent_test_loss, color=colors[train_mode], linestyle='dashed')
+            ax_regularize.plot(x_basic, basic_train_loss[:, 0], label=f'{train_mode} train', color=colors[train_mode],
+                               linestyle='solid')
+            ax_regularize.plot(x_basic, basic_test_loss, label=f'{train_mode} test', color=colors[train_mode],
+                               linestyle='dashed')
+            ax_regularize.plot(x_extent, regularize_train_loss[:, 0], color=colors[train_mode], linestyle='solid')
+            ax_regularize.plot(x_extent, regularize_test_loss, color=colors[train_mode], linestyle='dashed')
 
-            for train_mode in train_modes:
-                all_train_loss = np.zeros((max_epoch, 4, N_REPEAT))
-                all_test_loss = np.zeros((max_epoch, N_REPEAT))
-                for seed in range(1):
-                    all_train_loss[:, :, seed] = np.load(
-                        f'analysis\\artificial_dataset\\train_loss_{full_task_name}_{train_mode}_{seed}_0_{max_epoch}_fit={fit_mode}_pool={pool_mode}.npy')
-                    all_test_loss[:, seed] = np.load(
-                        f'analysis\\artificial_dataset\\test_loss_{full_task_name}_{train_mode}_{seed}_0_{max_epoch}_fit={fit_mode}_pool={pool_mode}.npy')
+            ax_basic.fill_between(x_basic, basic_train_loss[:, 0] - basic_train_std[:, 0],
+                                  basic_train_loss[:, 0] + basic_train_std[:, 0], alpha=0.3, color=colors[train_mode])
+            ax_basic.fill_between(x_basic, basic_test_loss - basic_test_std, basic_test_loss + basic_test_std,
+                                  alpha=0.3,
+                                  color=colors[train_mode])
+            ax_basic.fill_between(x_extent, extent_train_loss[:, 0] - extent_train_std[:, 0],
+                                  extent_train_loss[:, 0] + extent_train_std[:, 0], alpha=0.3, color=colors[train_mode])
+            ax_basic.fill_between(x_extent, extent_test_loss - extent_test_std, extent_test_loss + extent_test_std,
+                                  alpha=0.3, color=colors[train_mode])
+            ax_regularize.fill_between(x_basic, basic_train_loss[:, 0] - basic_train_std[:, 0],
+                                       basic_train_loss[:, 0] + basic_train_std[:, 0], alpha=0.3,
+                                       color=colors[train_mode])
+            ax_regularize.fill_between(x_basic, basic_test_loss - basic_test_std, basic_test_loss + basic_test_std,
+                                       alpha=0.3, color=colors[train_mode])
+            ax_regularize.fill_between(x_extent, regularize_train_loss[:, 0] - regularize_train_std[:, 0],
+                                       regularize_train_loss[:, 0] + regularize_train_std[:, 0], alpha=0.3,
+                                       color=colors[train_mode])
+            ax_regularize.fill_between(x_extent, regularize_test_loss - regularize_test_std,
+                                       regularize_test_loss + regularize_test_std, alpha=0.3,
+                                       color=colors[train_mode])
 
-                label = f'{task_name}-{train_mode}'
-                ax.plot(np.mean(all_test_loss, axis=1) / np.mean(all_train_loss, axis=2)[:, 0],
-                        label=f'model={train_mode[:3]}, task={task_name}',
-                        color=colors[label],
-                        linestyle='solid')
+            if np.max(basic_test_loss) > max_loss:
+                max_loss = np.max(basic_test_loss)
+            if np.min(regularize_train_loss) < min_loss:
+                min_loss = np.min(regularize_train_loss)
 
-        ax.legend()
-        if pool_mode:
-            ax.set_title(f'Pooled loss ratio')
-        else:
-            ax.set_title(f'Original loss ratio')
-        # ax.set_ylim(-0.1, 1.5)
-        ax.set_xlabel('Epoch')
-        ax.set_ylabel('test loss / train loss')
-
-    # same y axis for each pair of plots
-    max_ylim = [min(axs[0].get_ylim()[0], axs[2].get_ylim()[0]),
-                max(axs[0].get_ylim()[1], axs[2].get_ylim()[1])]
-    axs[0].set_ylim(max_ylim)
-    axs[2].set_ylim(max_ylim)
-    max_ylim = [min(axs[1].get_ylim()[0], axs[3].get_ylim()[0]),
-                max(axs[1].get_ylim()[1], axs[3].get_ylim()[1])]
-    axs[1].set_ylim(max_ylim)
-    axs[3].set_ylim(max_ylim)
-
-    fig.suptitle(f'Noise level: {noise_level}, Bias: {bias}, Fit mode: {fit_mode}')
-    fig.savefig(
-        f'image\\artificial_dataset\\training\\artificial_{noise_level:.1f}_{bias:.1f}_fit={fit_mode}.png')
-
-    plt.close(fig)
+        ax_basic.legend()
+        ax_basic.set_ylim(-0.1, 1.5)
+        ax_basic.set_xlabel('Epoch')
+        ax_basic.set_ylabel('Loss')
+        ax_basic.set_title(f'{task_name} No Regularization')
+        ax_regularize.legend()
+        ax_regularize.set_ylim(-0.1, 1.5)
+        ax_regularize.vlines(reg_epoch, 0, 1.4, color='k', linestyle='dashed')
+        ax_regularize.set_xlabel('Epoch')
+        ax_regularize.set_ylabel('Loss')
+        ax_regularize.set_title(f'{task_name} With Regularization')
+        fig_basic.savefig(f'image\\pooling\\{task_name}_2k_pool={POOLED}_full.png')
+        # fig_regularize.savefig(f'image\\{task_name}_regularize_2k.png')
 
 
 if __name__ == '__main__':
-    for noise_level in [0.0, 0.5]:
-        for bias in [-2.0, -1.0]:
-            for fit_order in [None, 3, 7]:
-                # for fit_pool in [(3, True), (None, True)]:
-                main(noise_level, bias, fit_order)
+    main()
